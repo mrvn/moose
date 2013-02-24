@@ -17,11 +17,13 @@
 */
 
 #include <stdint.h>
+#include <atags.h>
+#include <memory.h>
 
 extern "C" {
     // kernel_main gets called from boot.S. Declaring it extern "C" avoid
     // having to deal with the C++ name mangling.
-    void kernel_main(uint32_t zero, uint32_t model, uint32_t *atags);
+    void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags);
 
     // constructors
     typedef void (*constructor_t)(void);
@@ -39,10 +41,10 @@ void kernel_constructors(void) {
 }
 
 // kernel main function, it all begins here
-void kernel_main(uint32_t zero, uint32_t model, uint32_t *atags) {
+void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     UNUSED(zero);
     UNUSED(model);
-    UNUSED(atags);
+    Memory::init(atags);
     for(volatile int i = 0; i < 0x30000000; ++i) { }
 }
 

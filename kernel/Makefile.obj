@@ -4,3 +4,5 @@ OBJ-n :=
 
 OBJ-y += boot.o
 OBJ-y += main.o
+OBJ-y += atags.o
+OBJ-y += memory.o
