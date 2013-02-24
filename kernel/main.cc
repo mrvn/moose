@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <atags.h>
 #include <memory.h>
+#include <gpio.h>
 
 extern "C" {
     // kernel_main gets called from boot.S. Declaring it extern "C" avoid
@@ -45,6 +46,12 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     UNUSED(zero);
     UNUSED(model);
     Memory::init(atags);
-    for(volatile int i = 0; i < 0x30000000; ++i) { }
+    GPIO::init();
+    
+    // blink 10 times 
+    for(int i = 0; i < 20; ++i) {
+	GPIO::led();
+	for(volatile int j = 0; j < 0x3000000; ++j) { }
+    }
 }
 
