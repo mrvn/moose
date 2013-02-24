@@ -102,7 +102,7 @@ higher_half:
 	 * Turn on OK LED						*
 	 ****************************************************************/
 	// Base of GPIO registers
-	ldr	r4, =0x20200000
+	ldr	r4, =0xE0200000
 	// enable pin 16 as output
 	ldr	r6, [r4, #4]
 	mov	r5, #1
@@ -115,6 +115,14 @@ higher_half:
 	str	r5, [r4, #40]
 
 	/****************************************************************
+         * Call constructors                                            *
+         ****************************************************************/
+	push    {r0-r2}
+	ldr     r3, =kernel_constructors
+	blx     r3
+	pop     {r0-r2}
+
+	/****************************************************************
 	 * Call kernel_main						*
 	 ****************************************************************/
 	ldr	r3, =kernel_main
@@ -124,7 +132,7 @@ higher_half:
 	 * Turn off OK LED						*
 	 ****************************************************************/
 	// Base of GPIO registers
-	ldr	r4, =0x20200000
+	ldr	r4, =0xE0200000
 	// enable pin 16 as output
 	ldr	r6, [r4, #4]
 	mov	r5, #1
