@@ -1,0 +1,6 @@
+# Initialize vars
+OBJ-y :=
+OBJ-n :=
+
+OBJ-y += boot.o
+OBJ-y += main.o
