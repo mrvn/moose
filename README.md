@@ -3,4 +3,5 @@ MOOSE
 
 My Own Operatin System Environment
 
-This branch tracks the build system for MOOSE.
+This branch tracks the bootstrap code (boot.S) for MOOSE.
+
