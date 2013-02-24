@@ -1,5 +1,0 @@
-# Init vars
-OBJ-y :=
-OBJ-n :=
-
-OBJ-y += kernel/
