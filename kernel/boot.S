@@ -76,6 +76,12 @@ Start:
 	ldr	pc, =higher_half
 
 higher_half:
+	// run in system mode from here on
+	mrs	r4, cpsr	// get current mode
+	bic	r4, r4, #0x1f	// blank mode
+	orr	r5, r4, #0x1f	// sys mode
+	msr	cpsr_c, r5
+
 	// Setup the stack.
 	ldr	sp, =(VIRT_TO_PHYS + 0x8000)
 
