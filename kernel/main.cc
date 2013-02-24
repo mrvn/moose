@@ -20,6 +20,7 @@
 #include <atags.h>
 #include <memory.h>
 #include <gpio.h>
+#include <uart.h>
 
 extern "C" {
     // kernel_main gets called from boot.S. Declaring it extern "C" avoid
@@ -47,7 +48,15 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     UNUSED(model);
     Memory::init(atags);
     GPIO::init();
-    
+    UART::init();
+
+    UART::puts("\nMOOSE V0.0\n");
+    UART::puts("Memory used: ");
+    UART::put_uint32(Memory::allocated());
+    UART::puts("\nMemory free: ");
+    UART::put_uint32(Memory::available());
+    UART::putc('\n');
+
     // blink 10 times 
     for(int i = 0; i < 20; ++i) {
 	GPIO::led();

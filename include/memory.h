@@ -19,6 +19,7 @@
 #ifndef MOOSE_KERNEL_MEMORY_H
 #define MOOSE_KERNEL_MEMORY_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include <atags.h>
 #include <panic.h>
@@ -120,8 +121,11 @@ namespace Memory {
 	    base[offset / 4] = data;
 	}
 	explicit Peripheral() : base(0), size(0) { }
+	bool valid() {
+	    return (base != NULL) && (size != 0);
+	}
 	Peripheral & operator=(const Peripheral& p) {
-	    if (size != 0) panic("Memory::Peripheral::operator=() misuse!");
+	    if (valid()) panic("Memory::Peripheral::operator=() misuse!");
 	    base = p.base;
 	    size = p.size;
 	    return *this;
@@ -151,6 +155,10 @@ namespace Memory {
      * returns: pointer to peripheral mapped into the process address space
      */
     Peripheral alloc_peripheral(uint32_t offset, uint32_t size);
+
+    // Status information
+    uint32_t allocated();
+    uint32_t available();
 }
 
 #endif // #ifndef MOOSE_KERNEL_MEMORY_H

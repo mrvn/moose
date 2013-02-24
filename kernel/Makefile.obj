@@ -7,3 +7,4 @@ OBJ-y += main.o
 OBJ-y += atags.o
 OBJ-y += memory.o
 OBJ-y += gpio.o
+OBJ-y += uart.o
