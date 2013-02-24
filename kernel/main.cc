@@ -22,14 +22,27 @@ extern "C" {
     // kernel_main gets called from boot.S. Declaring it extern "C" avoid
     // having to deal with the C++ name mangling.
     void kernel_main(uint32_t zero, uint32_t model, uint32_t *atags);
+
+    // constructors
+    typedef void (*constructor_t)(void);
+    extern constructor_t _init_array_start[];
+    extern constructor_t _init_array_end[];
+    void kernel_constructors(void);
 }
 
 #define UNUSED(x) (void)(x)
+
+void kernel_constructors(void) {
+    for(constructor_t *fn = _init_array_start; fn != _init_array_end; ++fn) {
+	(*fn)();
+    }
+}
 
 // kernel main function, it all begins here
 void kernel_main(uint32_t zero, uint32_t model, uint32_t *atags) {
     UNUSED(zero);
     UNUSED(model);
     UNUSED(atags);
-    for(volatile int i = 0; i < 800000000; ++i) { }
+    for(volatile int i = 0; i < 0x30000000; ++i) { }
 }
+
