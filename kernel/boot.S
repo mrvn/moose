@@ -85,6 +85,19 @@ higher_half:
 	// Setup the stack.
 	ldr	sp, =(VIRT_TO_PHYS + 0x8000)
 
+	// Clear out bss.
+	ldr	r4, =_bss_start
+	ldr	r9, =_bss_end
+	mov	r5, #0
+	mov	r6, #0
+	mov	r7, #0
+	mov	r8, #0
+1:	// store multiple at r4.
+	stmia	r4!, {r5-r8}
+	// If we're still below bss_end, loop.
+	cmp	r4, r9
+	blo	1b
+
 	// Call kernel_main
 	ldr	r3, =kernel_main
 	blx	r3
