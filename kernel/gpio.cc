@@ -100,9 +100,9 @@ namespace GPIO {
 	gpio.set(GPAREN1, 0);
 	gpio.set(GPAFEN0, 0);
 	gpio.set(GPAFEN1, 0);
-	// all pins input (except 16 (OK LED) is output)
+	// all pins input (except 14/15 (UART) + 16 (OK LED) is output)
 	gpio.set(GPFSEL0, 0);
-	gpio.set(GPFSEL1, 0x00040000);
+	gpio.set(GPFSEL1, (4 << 12) | (4 << 15) | (1 << 18));
 	gpio.set(GPFSEL2, 0);
 	gpio.set(GPFSEL3, 0);
 	gpio.set(GPFSEL4, 0);
@@ -166,9 +166,9 @@ namespace GPIO {
 	    gpio.set(GPPUDCLK0, 0);
 	    gpio.set(GPPUDCLK1, 0);
 	    // select function
-	    int reg = pins[i].num / 9;
-	    int shift = pins[i].num % 9;
-	    uint32_t t = gpio.get(GPFSEL0 + reg);
+	    int reg = pins[i].num / 10;
+	    int shift = (pins[i].num % 10) * 3;
+	    uint32_t t = gpio.get(GPFSEL0 + reg * 4);
 	    t &= ~(7 << shift);
 	    t |= pins[i].function << shift;
 	    gpio.set(GPFSEL0 + reg, t);
