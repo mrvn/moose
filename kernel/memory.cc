@@ -44,7 +44,9 @@ namespace Memory {
     
     uint8_t *next_free = _end;
     uint8_t *last = NULL;
-    
+
+    volatile uint32_t * Peripheral::last = NULL;
+
     void init(const ATAG::Header *atags) {
 	/****************************************************************
 	 * Parse atags to find amount of memory				*
@@ -86,7 +88,8 @@ namespace Memory {
     // This should mark the peripheral as in use and map it into the processes
     // address space. Since we don't have processes yet simply return the
     // address in kernel space where peripherals are mapped.
-    void *alloc_peripheral(uint32_t offset, uint32_t) {
-	return (void*)(PERIPHERAL_BASE + offset);
+    Peripheral alloc_peripheral(uint32_t offset, uint32_t size) {
+	return Peripheral((volatile uint32_t *)(PERIPHERAL_BASE + offset),
+			  size);
     }
 }
