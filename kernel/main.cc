@@ -31,4 +31,5 @@ void kernel_main(uint32_t zero, uint32_t model, uint32_t *atags) {
     UNUSED(zero);
     UNUSED(model);
     UNUSED(atags);
+    for(volatile int i = 0; i < 800000000; ++i) { }
 }

@@ -98,13 +98,58 @@ higher_half:
 	cmp	r4, r9
 	blo	1b
 
-	// Call kernel_main
+	/****************************************************************
+	 * Turn on OK LED						*
+	 ****************************************************************/
+	// Base of GPIO registers
+	ldr	r4, =0x20200000
+	// enable pin 16 as output
+	ldr	r6, [r4, #4]
+	mov	r5, #1
+	lsl	r5, #18
+	orr	r6, r6, r5
+	str	r6, [r4, #4]
+	// turn on LED
+	mov	r5, #1
+	lsl	r5, #16
+	str	r5, [r4, #40]
+
+	/****************************************************************
+	 * Call kernel_main						*
+	 ****************************************************************/
 	ldr	r3, =kernel_main
 	blx	r3
 
-	// Blink OK LED
+	/****************************************************************
+	 * Turn off OK LED						*
+	 ****************************************************************/
+	// Base of GPIO registers
+	ldr	r4, =0x20200000
+	// enable pin 16 as output
+	ldr	r6, [r4, #4]
+	mov	r5, #1
+	lsl	r5, #18
+	orr	r6, r6, r5
+	str	r6, [r4, #4]
+	// turn off LED
+	mov	r5, #1
+	lsl	r5, #16
+	str	r5, [r4, #28]
+
+	// halt
+halt:
+	wfe
+	b	halt
+
+
+	/****************************************************************
+	 * Blink OK LED							*
+	 ****************************************************************/
+	// Emergency signal in case something goes horribly wrong
 	.globl panic
 panic:
+	.globl abort
+abort:
 	// Base of GPIO registers
 	ldr	r4, =0xE0200000
 
