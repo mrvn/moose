@@ -43,7 +43,7 @@ mrproper: localclean
 built-in:
 	$(Q) $(MAKE) -f $(srctree)/Makefile.built PARENT= built-in
 
-%.elf: built-in.o link-arm-eabi.ld
+%.elf: built-in.o link-arm-eabi.ld Makefile Makefile.options
 	$(L) Linking $@
 	$(Q) $(CXX) $(LDFLAGS) built-in.o -lgcc -Tlink-arm-eabi.ld -o $@
 

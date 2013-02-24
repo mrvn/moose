@@ -19,15 +19,15 @@ MRPROPERDIRS := $(DIRS:%=mrproper-%)
 SUBDIRS      := $(DIRS:%=sub-%)
 
 # Basic patterns
-%.o: %.S
+%.o: %.S $(srctree)/Makefile $(srctree)/Makefile.built $(srctree)/Makefile.options
 	$(L) Assembling $(PARENT)$@
 	$(Q) $(CC) $(ASFLAGS) -MT $@ -MF $@.d -c $< -o $@
 
-%.o: %.c
+%.o: %.c $(srctree)/Makefile $(srctree)/Makefile.built $(srctree)/Makefile.options
 	$(L) Compiling $(PARENT)$@
 	$(Q) $(CC) $(CFLAGS) -MT $@ -MF $@.d -c $< -o $@
 
-%.o: %.cc
+%.o: %.cc $(srctree)/Makefile $(srctree)/Makefile.built $(srctree)/Makefile.options
 	$(L) Compiling $(PARENT)$@
 	$(Q) $(CXX) $(CXXFLAGS) -MT $@ -MF $@.d -c $< -o $@
 
@@ -60,7 +60,7 @@ mrproper: $(MRPROPERDIRS) localclean
 	$(L) MrProper $(PARENT)
 	$(Q) rm -f *~ *.d
 
-built-in.o: Makefile.obj $(OBJS) $(BUILT-INS)
+built-in.o: Makefile.obj $(srctree)/Makefile $(srctree)/Makefile.built $(srctree)/Makefile.options $(OBJS) $(BUILT-INS)
 	$(L) Linking $(PARENT)$@
 	$(Q) $(LD) -m armelf -r -o $@ $(OBJS) $(BUILT-INS)
 
