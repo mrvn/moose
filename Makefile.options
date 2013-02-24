@@ -1,0 +1,38 @@
+# Moose Makefile options
+
+# build environment
+PREFIX ?= /usr/local/cross
+ARMGNU ?= $(PREFIX)/bin/arm-none-eabi-
+
+CC      := $(ARMGNU)gcc
+CXX     := $(ARMGNU)g++
+CXXFILT := $(ARMGNU)c++filt
+LD      := $(ARMGNU)ld
+OBJDUMP := $(ARMGNU)objdump
+OBJCOPY := $(ARMGNU)objcopy
+
+# Default flags
+DEPENDFLAGS := -MD -MP
+INCLUDES    := -I$(srctree)/include
+BASEFLAGS   := -O2 -fpic -nostdlib
+BASEFLAGS   += -ffreestanding -mhard-float -mfpu=vfp
+BASEFLAGS   += -fomit-frame-pointer -mcpu=arm1176jzf-s
+EXTRAFLAGS  := -mhard-float -mfpu=vfp
+WARNFLAGS   := -Wall -Wextra -Wshadow -Wcast-align -Wwrite-strings
+WARNFLAGS   += -Wredundant-decls -Winline
+WARNFLAGS   += -Wno-endif-labels -Wfloat-equal
+WARNFLAGS   += -Wformat=2 -Winit-self
+WARNFLAGS   += -Winvalid-pch -Wmissing-format-attribute
+WARNFLAGS   += -Wmissing-include-dirs
+WARNFLAGS   += -Wredundant-decls -Wshadow
+WARNFLAGS   += -Wswitch -Wsystem-headers
+WARNFLAGS   += -Wno-pragmas
+WARNFLAGS   += -Wwrite-strings -Wdisabled-optimization -Wpointer-arith
+WARNFLAGS   += -Werror -Wno-error=unused-variable -Wno-error=unused-parameter
+ASFLAGS     := $(INCLUDES) $(DEPENDFLAGS) $(EXTRAFLAGS) -D__ASSEMBLY__
+ALLFLAGS    := $(BASEFLAGS) $(WARNFLAGS) $(INCLUDES) $(DEPENDFLAGS)
+ALLFLAGS    += $(EXTRAFLAGS) 
+
+CFLAGS      := $(ALLFLAGS) -Wstrict-prototypes -Wnested-externs -Winline
+CXXFLAGS    := $(ALLFLAGS) -fno-exceptions -std=c++0x
+LDFLAGS     := $(BASEFLAGS)

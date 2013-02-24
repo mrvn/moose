@@ -1,0 +1,13 @@
+# Init vars
+OBJ-y :=
+OBJ-n :=
+
+# subdirs can be added with
+OBJ-y += subdir/
+
+# object files can be added with
+OBJ-y += file.o
+
+# Configurable subdirs and object files can be added through indirection
+CONFIG_FOO := y
+OBJ-$(CONFIG_FOO) += bla.o blub.o buzz/
