@@ -36,33 +36,27 @@ SECTIONS
     __exidx_end = .;
     _rodata_start = .;
     .rodata : {
-	*(.rodata)
+	*(SORT_BY_ALIGNMENT(.rodata))
     }
-    . = ALIGN(16384); /* align to 16k */
+    .init_array : ALIGN(4) {
+    _init_array_start = .;
+        *(.init_array)
+        *(SORT_BY_INIT_PRIORITY(.init_array.*))
+    _init_array_end = .;
+    }
+    . = ALIGN(4096); /* align to page size */
     _rodata_end = .;
     _data_start = .;
     .data : {
-        KEEP(*(.data.pagetable))
-        . = ALIGN(4096); /* align to page size */
-        *(.data)
-    }
-    .ctors : ALIGN(4) {
-    __ctor_list = .;
-    *(.ctors)
-    __ctor_end = .;
-    }
-    .dtors : ALIGN(4) {
-    __dtor_list = .;
-    *(.dtors)
-    __dtor_end = .;
+        *(SORT_BY_ALIGNMENT(.data))
     }
     .got : { *(.got.plt) *(.got) }
-    .dynamic : { *(.dynamic) }    . = ALIGN(4096); /* align to page size */
+    .dynamic : { *(.dynamic) }
     _data_end = .;
     _bss_start = .;
     .bss : {
         bss = .;
-        *(.bss)
+        *(SORT_BY_ALIGNMENT(.bss))
     }
     . = ALIGN(4096); /* align to page size */
     _bss_end = .;
