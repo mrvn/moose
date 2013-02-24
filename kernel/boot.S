@@ -102,7 +102,7 @@ higher_half:
 	 * Turn on OK LED						*
 	 ****************************************************************/
 	// Base of GPIO registers
-	ldr	r4, =0x20200000
+	ldr	r4, =0xE0200000
 	// enable pin 16 as output
 	ldr	r6, [r4, #4]
 	mov	r5, #1
@@ -124,7 +124,7 @@ higher_half:
 	 * Turn off OK LED						*
 	 ****************************************************************/
 	// Base of GPIO registers
-	ldr	r4, =0x20200000
+	ldr	r4, =0xE0200000
 	// enable pin 16 as output
 	ldr	r6, [r4, #4]
 	mov	r5, #1
