@@ -92,4 +92,12 @@ namespace Memory {
 	return Peripheral((volatile uint32_t *)(PERIPHERAL_BASE + offset),
 			  size);
     }
+
+    uint32_t allocated() {
+	return next_free - (uint8_t*)VIRT_BASE;
+    }
+
+    uint32_t available() {
+	return last - next_free;
+    }
 }

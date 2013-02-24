@@ -155,6 +155,10 @@ namespace Memory {
      * returns: pointer to peripheral mapped into the process address space
      */
     Peripheral alloc_peripheral(uint32_t offset, uint32_t size);
+
+    // Status information
+    uint32_t allocated();
+    uint32_t available();
 }
 
 #endif // #ifndef MOOSE_KERNEL_MEMORY_H
