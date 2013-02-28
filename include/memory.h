@@ -149,7 +149,13 @@ namespace Memory {
      */
     void *early_malloc(int order);
 
-    /* Claim a peripheral region
+    /* free a chunk of kernel memory during bootstrap
+     * addr: virtual address
+     * size: size of region to free
+     */
+    void early_free(void *addr, size_t size);
+    
+    /* claim a peripheral region
      * offset:  address or peripheral relative to peripheral region
      * size:    size of region to claim (multiple of 4)
      * returns: pointer to peripheral mapped into the process address space

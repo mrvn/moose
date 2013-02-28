@@ -79,6 +79,14 @@ namespace Memory {
         return res;
     }
 
+    /* free a chunk of kernel memory during bootstrap
+     * addr: virtual address
+     * size: size of region to free
+     */
+    void early_free(void *, size_t) {
+	// FIXME: reclaim memory
+    }
+
     /* Claim a peripheral region
      * offset:  address or peripheral relative to peripheral region
      * size:    size of region to claim (multiple of PAGE_SIZE)
