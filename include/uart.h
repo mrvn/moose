@@ -24,6 +24,8 @@
 #ifndef MOOSE_KERNEL_UART_H
 #define MOOSE_KERNEL_UART_H
 
+#include <stdint.h>
+
 namespace UART {
     void init();
     
