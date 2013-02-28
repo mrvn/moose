@@ -8,3 +8,7 @@ OBJ-y += atags.o
 OBJ-y += memory.o
 OBJ-y += gpio.o
 OBJ-y += uart.o
+OBJ-y += task.o
+OBJ-y += syscall.o
+OBJ-y += irq.o
+OBJ-y += entry.o

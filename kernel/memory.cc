@@ -70,13 +70,21 @@ namespace Memory {
      * returns: pointer to kernel memory
      */
     void *early_malloc(int order) {
-        uint32_t size = 1 << order;
+        uint32_t size = PAGE_SIZE << order;
         void *res = next_free;
         if (next_free + size >= last) {
             panic("Out of memory!");
         }
         next_free += size;
         return res;
+    }
+
+    /* free a chunk of kernel memory during bootstrap
+     * addr: virtual address
+     * size: size of region to free
+     */
+    void early_free(void *, size_t) {
+	// FIXME: reclaim memory
     }
 
     /* Claim a peripheral region
