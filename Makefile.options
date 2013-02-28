@@ -34,5 +34,5 @@ ALLFLAGS    := $(BASEFLAGS) $(WARNFLAGS) $(INCLUDES) $(DEPENDFLAGS)
 ALLFLAGS    += $(EXTRAFLAGS) 
 
 CFLAGS      := $(ALLFLAGS) -Wstrict-prototypes -Wnested-externs -Winline
-CXXFLAGS    := $(ALLFLAGS) -fno-exceptions -std=c++0x
+CXXFLAGS    := $(ALLFLAGS) -fno-exceptions -std=c++11
 LDFLAGS     := $(BASEFLAGS)
