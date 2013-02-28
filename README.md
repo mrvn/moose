@@ -3,4 +3,4 @@ MOOSE
 
 My Own Operatin System Environment
 
-This branch tracks the ...
+This branch tracks various basic data structures.
