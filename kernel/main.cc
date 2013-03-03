@@ -49,48 +49,14 @@ void kernel_constructors(void) {
     }
 }
 
-void wait() {
-    uint32_t x = 0;
-    while(true) {
+void blink(void *) {
+    for(uint32_t x = 0; x < 10; ++x) {
 	UART::puts("########### ");
 	UART::puts(__PRETTY_FUNCTION__);
-	UART::put_uint32(x++);
-	UART::putc('\n');
-	Syscall::sleep(0x500000);
-    }
-}
-
-void busy1() {
-    uint32_t x = 0;
-    while(true) {
-	UART::puts("########### ");
-	UART::puts(__PRETTY_FUNCTION__);
-	UART::put_uint32(x++);
-	UART::putc('\n');
-	for(volatile int i = 0; i < 0x1000000; ++i) { }
-    }
-}
-
-void busy2() {
-    uint32_t x = 0;
-    while(true) {
-	UART::puts("########### ");
-	UART::puts(__PRETTY_FUNCTION__);
-	UART::put_uint32(x++);
-	UART::putc('\n');
-	for(volatile int i = 0; i < 0x1000000; ++i) { }
-    }
-}
-
-void blink() {
-    uint32_t x = 0;
-    while(true) {
-	UART::puts("########### ");
-	UART::puts(__PRETTY_FUNCTION__);
-	UART::put_uint32(x++);
+	UART::put_uint32(x);
 	UART::putc('\n');
 	GPIO::led();
-	Syscall::sleep(0x300000);
+	Syscall::sleep(0x100000);
     }
 }
 
@@ -114,31 +80,13 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     Syscall::init();
     Timer::init();
 
-    // Test syscall (starts preemptive multitasking)
-    UART::puts("Calling syscall...\n");
-    uint32_t res = Syscall::sleep(0x1000000);
-    UART::puts("Syscall returned: ");
-    UART::put_uint32(res);
-    UART::putc('\n');
-    for(volatile int i = 0; i < 0x20000000; ++i) { }
+    // First syscall starts multitasking, fitting that it is creating a task
+    Syscall::create_thread("<BLINK>", blink, NULL);
     
-    // Test multitasking
-    Task::Task *task = new Task::Task("<WAIT>", wait, Task::RUNNING);
-    task = new Task::Task("<BLINK>", blink, Task::RUNNING);
-    task = new Task::Task("<BUSY1>", busy1, Task::RUNNING);
-    task = new Task::Task("<BUSY2>", busy2, Task::RUNNING);
-    UNUSED(task);
-
     // we are done, let the other tasks run
     UART::puts("exiting kernel task\n");
-    Task::Task *self = Task::Task::current();
-    // FIXME: make this a syscall before freeing the stack in die()
-    self->die();
-    switch_to_current_task();
+    Syscall::end_thread();
 
-    // should never reach this
-    while(true) { }
-
-    // should never reach this
-    panic("foo");
+    UART::puts("ERROR: should never reach this!");
+    panic("ERROR: should never reach this!");
 }

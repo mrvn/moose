@@ -56,7 +56,7 @@ namespace Syscall {
 	UART::put_uint32(opcode);
 	UART::putc('\n');
 	switch(opcode) {
-	case 0xEF000000: // sleep
+	case 0xEF000000: { // sleep
 	    union {
 		uint32_t u[2];
 		int64_t i;
@@ -64,6 +64,28 @@ namespace Syscall {
 	    arg.u[0] = r0;
 	    arg.u[1] = r1;	    
 	    return Task::sys_sleep(arg.i);
+	}
+	case 0xEF000001: { // create_thread
+	    const char *name = (const char*)r0;
+	    start_fn start = (start_fn)r1;
+	    void *arg = (void*)r2;
+	    UART::puts("create_thread(");
+	    UART::puts(name);
+	    UART::puts(", ");
+	    UART::put_uint32(r1);
+	    UART::puts(", ");
+	    UART::put_uint32(r2);
+	    UART::puts(")\n");
+	    Task::Task *task = new Task::Task(name, start, arg);
+	    UART::puts("task = ");
+	    UART::put_uint32((uint32_t)task);
+	    UART::putc('\n');
+	    return 0;
+	}
+	case 0xEF000002: { // end_thread
+	    Task::Task::die();
+	    return 0;
+	}
 	default:
 	    // FIXME: illegal syscall
 	    return -1;

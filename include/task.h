@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <list.h>
 #include <timer.h>
+#include <syscall.h>
 
 namespace Task {
     enum State { RUNNING, SLEEPING };
@@ -88,17 +89,17 @@ namespace Task {
     }
 
     // Task structure
-    typedef void (*start_fn)();
     class Task {
     public:
-	Task(const char *name__, start_fn start, State state__ = RUNNING,
+	Task(const char *name__, Syscall::start_fn start, void *arg,
+	     State state__ = RUNNING,
 	     Timer::Timer::callback_fn timer_callback = timer_callback);
 	~Task();
 	void * operator new(size_t);
 	void operator delete(void *ptr);
 	const char *name() const { return name_; }
 	static void schedule(State new_state);
-	void die();
+	static void die();
 	static Task * current() { return (Task*)read_kernel_thread_id(); }
 	Timer::Timer *timer() { return &timer_; }
 	void wakeup();
@@ -117,6 +118,7 @@ namespace Task {
 	static void timer_callback(Timer::Timer *timer, void *data);
 	static Task * deactivate(uint64_t now);
 	void activate(uint64_t now);
+	static void starter(Task *task, Syscall::start_fn start, void *arg);
     };
 
     /*
