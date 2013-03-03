@@ -31,7 +31,9 @@
 namespace IRQ {
     enum IRQ_BIT {
 	// GPU IRQs 0 - 63
+	// IRQ_TIMER0      = 0, // GPU used
 	IRQ_TIMER1      = 1,
+	// IRQ_TIMER2      = 2, // GPU used
 	IRQ_TIMER3      = 3,
 	IRQ_AUX         = 29,
 	IRQ_I2C_SPI_SLV = 43,
