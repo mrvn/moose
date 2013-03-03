@@ -34,13 +34,13 @@ namespace Task {
     Task *sleepy;
     uint64_t end_of_slice;
 
-    void idle_idles() {
+    void idle_idles(void *) {
 	while(true) {
 	    asm volatile("wfi");
 	}
     }
     
-    void sleepy_must_not_wake() {
+    void sleepy_must_not_wake(void *) {
 	panic("Sleepy must not wake!");
     }
 
@@ -55,9 +55,19 @@ namespace Task {
 	UART::putc('\n');
 	timer->owner()->wakeup();
     }
+
+    void Task::starter(Task *task, Syscall::start_fn start, void *arg) {
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::puts("\n");
+	UART::puts(" task = ");
+	UART::put_uint32((uint32_t)task);
+	start(arg);
+	Syscall::end_thread();
+	UART::puts(" started finished\n");
+    }
     
-    Task::Task(const char *name__, start_fn start, State state__,
-	       Timer::Timer::callback_fn timer_callback__)
+    Task::Task(const char *name__, Syscall::start_fn start, void *arg,
+	       State state__, Timer::Timer::callback_fn timer_callback__)
 	: name_(name__), state_(state__), all_list_(List::DList()),
 	  state_list_(List::DList()),
 	  timer_(name__, this, 0, timer_callback__, this),
@@ -71,7 +81,10 @@ namespace Task {
 	// FIXME: allocate stack in user space
 	regs_[REG_SP] =
 	    ((uint32_t)Memory::early_malloc(2)) + Memory::PAGE_SIZE * 4;
-	regs_[REG_PC] = (uint32_t)start;
+	regs_[REG_PC] = (uint32_t)starter;
+	regs_[REG_R0] = (uint32_t)this;
+	regs_[REG_R1] = (uint32_t)start;
+	regs_[REG_R2] = (uint32_t)arg;
 	// set A I F SYS
 	regs_[REG_CPSR] = 0b101011111;
 	all_head->insert_before(&all_list_);
@@ -101,6 +114,7 @@ namespace Task {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
 	early_free(addr, Memory::PAGE_SIZE);
+	UART::puts(" task deleted\n");
     }
 
     void Task::fix_kernel_stack() {
@@ -257,10 +271,12 @@ namespace Task {
     void Task::die() {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
+	Task *task = (Task*)read_kernel_thread_id();
 	// select a new task
 	// change to SLEEPING to prevent geting picked again
 	schedule(SLEEPING);
-	delete this;
+	delete task;
+	UART::puts(" task died\n");
     }
     
     void init() {
@@ -272,8 +288,8 @@ namespace Task {
 	state_head[RUNNING] = &running_dummy;
 	state_head[SLEEPING] = &sleeping_dummy;
 	// create core tasks
-	idle = new Task("<IDLE>", idle_idles, RUNNING, schedule_callback);
-	sleepy = new Task("<SLEEPY>", sleepy_must_not_wake, SLEEPING);
+	idle = new Task("<IDLE>", idle_idles, NULL, RUNNING, schedule_callback);
+	sleepy = new Task("<SLEEPY>", sleepy_must_not_wake, NULL, SLEEPING);
 	if (idle == NULL || sleepy == NULL) {
 	    panic("Out of memory allocating core tasks!");
 	}
@@ -287,7 +303,7 @@ namespace Task {
 	sleeping_dummy.remove();
 
 	// Create kernel thread
-	Task *kernel = new Task("<MOOSE>", NULL, RUNNING);
+	Task *kernel = new Task("<MOOSE>", NULL, NULL, RUNNING);
 	kernel->fix_kernel_stack();
 
     	// load thread register
