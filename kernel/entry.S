@@ -118,7 +118,7 @@ exception_syscall:
 	// store result
 	stmia	r4, {r0}
 	// schedule after every syscall for now
-	bl	schedule
+	// bl	schedule
 	restore
 
 .globl exception_prefetch_abort
