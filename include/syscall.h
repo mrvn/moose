@@ -36,6 +36,21 @@ namespace Syscall {
 	asm volatile("swi #0" : "=r"(res) : "0"(r0), "r"(r1));
 	return res;
     }
+
+    typedef void (*start_fn)(void*);
+    static inline uint32_t create_thread(const char *name, start_fn start,
+					 void *arg) {
+	register const char *r0 asm("r0") = name;
+	register start_fn r1 asm("r1") = start;
+	register void *r2 asm("r2") = arg;
+	register uint32_t res asm("r0");
+	asm volatile("swi #1" : "=r"(res) : "0"(r0), "r"(r1), "r"(r2));
+	return res;
+    }
+
+    static inline void end_thread() {
+	asm volatile("swi #2");
+    }
 }
 
 #endif // #ifndef MOOSE_KERNEL_SYSCALL_H
