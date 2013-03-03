@@ -305,16 +305,19 @@ namespace Task {
      * time: nanoseconds to sleep
      */
     uint32_t sys_sleep(int64_t time) {
-	if (time >= 0) {
+	if (time == 0) {
+	    // yield
+	    Task::schedule(RUNNING);
+	} else if (time > 0) {
 	    Task *task = (Task*)read_kernel_thread_id();
 	    uint64_t wakeup = Timer::system_time() + time;
 	    Task::schedule(SLEEPING);
 	    Timer::set_timer(task->timer(), wakeup);
-	    return 0;
 	} else {
 	    // FIXME: EINVAL
 	    return -1;
 	}
+	return 0;
     }
 }
 
