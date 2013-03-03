@@ -12,3 +12,4 @@ OBJ-y += task.o
 OBJ-y += syscall.o
 OBJ-y += irq.o
 OBJ-y += entry.o
+OBJ-y += timer.o

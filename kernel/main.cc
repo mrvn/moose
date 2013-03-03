@@ -25,6 +25,7 @@
 #include <task.h>
 #include <irq.h>
 #include <syscall.h>
+#include <timer.h>
 
 extern "C" {
     // kernel_main gets called from boot.S. Declaring it extern "C" avoid
@@ -49,23 +50,47 @@ void kernel_constructors(void) {
 }
 
 void wait() {
+    uint32_t x = 0;
     while(true) {
+	UART::puts("########### ");
 	UART::puts(__PRETTY_FUNCTION__);
+	UART::put_uint32(x++);
 	UART::putc('\n');
-	for(volatile int i = 0; i < 0x10000000; ++i) { }
-	syscall(0x23,0x42,0x666);
+	Syscall::sleep(0x500000);
+    }
+}
+
+void busy1() {
+    uint32_t x = 0;
+    while(true) {
+	UART::puts("########### ");
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::put_uint32(x++);
+	UART::putc('\n');
+	for(volatile int i = 0; i < 0x1000000; ++i) { }
+    }
+}
+
+void busy2() {
+    uint32_t x = 0;
+    while(true) {
+	UART::puts("########### ");
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::put_uint32(x++);
+	UART::putc('\n');
+	for(volatile int i = 0; i < 0x1000000; ++i) { }
     }
 }
 
 void blink() {
+    uint32_t x = 0;
     while(true) {
+	UART::puts("########### ");
 	UART::puts(__PRETTY_FUNCTION__);
+	UART::put_uint32(x++);
 	UART::putc('\n');
-	for(int j = 0; j < 16; ++j) {
-	    GPIO::led();
-	    for(volatile int i = 0; i < 0x1000000; ++i) { }
-	}
-	syscall(0x1,0x2,0x3);
+	GPIO::led();
+	Syscall::sleep(0x300000);
     }
 }
 
@@ -87,18 +112,21 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     Task::init();
     IRQ::init();
     Syscall::init();
+    Timer::init();
 
-    // Test syscall
+    // Test syscall (starts preemptive multitasking)
     UART::puts("Calling syscall...\n");
-    uint32_t res = syscall(0x01234567, 0x00112233, 0x01230123);
+    uint32_t res = Syscall::sleep(0x1000000);
     UART::puts("Syscall returned: ");
     UART::put_uint32(res);
     UART::putc('\n');
     for(volatile int i = 0; i < 0x20000000; ++i) { }
     
-    // Test cooperative multitasking via syscall
+    // Test multitasking
     Task::Task *task = new Task::Task("<WAIT>", wait, Task::RUNNING);
     task = new Task::Task("<BLINK>", blink, Task::RUNNING);
+    task = new Task::Task("<BUSY1>", busy1, Task::RUNNING);
+    task = new Task::Task("<BUSY2>", busy2, Task::RUNNING);
     UNUSED(task);
 
     // we are done, let the other tasks run
@@ -107,6 +135,9 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     // FIXME: make this a syscall before freeing the stack in die()
     self->die();
     switch_to_current_task();
+
+    // should never reach this
+    while(true) { }
 
     // should never reach this
     panic("foo");

@@ -118,7 +118,7 @@ exception_syscall:
 	// store result
 	stmia	r4, {r0}
 	// schedule after every syscall for now
-	bl	schedule
+	// bl	schedule
 	restore
 
 .globl exception_prefetch_abort
@@ -148,14 +148,6 @@ exception_fiq:
 	save	4
 	bl	exception_fiq_handler
 	restore
-
-// Syscall stubs
-.globl syscall
-syscall:
-	push	{lr}
-	swi	#0
-	pop	{lr}
-	bx	lr
 
 // set stack for mode
 // void set_mode_stack(Mode mode, uint32_t *stack_top);

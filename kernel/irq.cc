@@ -77,6 +77,13 @@ namespace IRQ {
 	}
 	handler[num].handler = fn;
 	handler[num].data = data;
+	if (num < 32) {
+	    irq.set(ENABLE1, 1 << num);
+	} else if (num < 64) {
+	    irq.set(ENABLE2, 1 << (num - 32));
+	} else {
+	    irq.set(ENABLE, 1 << (num - 64));
+	}
     }
 
     // enable interrupts
@@ -193,5 +200,21 @@ namespace IRQ {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
 	panic(__PRETTY_FUNCTION__);
+    }
+
+    void debug() {
+        uint32_t pending1 = irq.get(PENDING1);
+        uint32_t pending2 = irq.get(PENDING2);
+        uint32_t pending  = irq.get(PENDING);
+
+	// debug all interrupts
+	UART::puts( __PRETTY_FUNCTION__);
+	UART::puts("\nIRQ1 pending: ");
+	UART::put_uint32(pending1);
+	UART::puts("\nIRQ2 pending: ");
+	UART::put_uint32(pending2);
+	UART::puts("\nIRQ  pending: ");
+	UART::put_uint32(pending);
+	UART::putc('\n');
     }
 }
