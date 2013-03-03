@@ -82,7 +82,8 @@ namespace IRQ {
     typedef void (*handler_t)(void *);
     
     void init();
-    
+    void debug();
+
     void set_irq_handler(IRQ_BIT num, handler_t handler, void *data);
 }
 
