@@ -77,6 +77,13 @@ namespace IRQ {
 	}
 	handler[num].handler = fn;
 	handler[num].data = data;
+	if (num < 32) {
+	    irq.set(ENABLE1, 1 << num);
+	} else if (num < 64) {
+	    irq.set(ENABLE2, 1 << (num - 32));
+	} else {
+	    irq.set(ENABLE, 1 << (num - 64));
+	}
     }
 
     // enable interrupts
