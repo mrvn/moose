@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <list.h>
+#include <timer.h>
 
 namespace Task {
     enum State { RUNNING, SLEEPING };
@@ -90,7 +91,8 @@ namespace Task {
     typedef void (*start_fn)();
     class Task {
     public:
-	Task(const char *name__, start_fn start, State state__ = RUNNING);
+	Task(const char *name__, start_fn start, State state__ = RUNNING,
+	     Timer::Timer::callback_fn timer_callback = timer_callback);
 	~Task();
 	void * operator new(size_t);
 	void operator delete(void *ptr);
@@ -98,18 +100,35 @@ namespace Task {
 	static void schedule(State new_state);
 	void die();
 	static Task * current() { return (Task*)read_kernel_thread_id(); }
+	Timer::Timer *timer() { return &timer_; }
+	void wakeup();
     private:
 	uint32_t regs_[NUM_REGS];
 	const char *name_;
 	State state_;
 	List::DList all_list_;
 	List::DList state_list_;
-
+	Timer::Timer timer_;
+	uint64_t start_;
+	uint32_t remaining_;
+	
 	void fix_kernel_stack();
 	friend void init();
+	static void timer_callback(Timer::Timer *timer, void *data);
+	static Task * deactivate(uint64_t now);
+	void activate(uint64_t now);
     };
 
+    /*
+     * Initialize task subsystem
+     */
     void init();
+
+    /*
+     * put current task to sleep
+     * time: nanoseconds to sleep
+     */
+    uint32_t sys_sleep(int64_t time);
 }
 
 #endif // #ifndef MOOSE_KERNEL_TASK_H
