@@ -21,13 +21,21 @@
 
 #include <stdint.h>
 
-extern "C" {
-    // from entry.S
-    uint32_t syscall(uint32_t arg0, uint32_t arg1, uint32_t arg2);
-}
-
 namespace Syscall {
     void init();
+
+    static inline uint32_t sleep(int64_t time) {
+	union {
+	    uint32_t u[2];
+	    int64_t i;
+	} arg;
+	arg.i = time;
+	register uint32_t r0 asm("r0") = arg.u[0];
+	register uint32_t r1 asm("r1") = arg.u[1];
+	register uint32_t res asm("r0");
+	asm volatile("swi #0" : "=r"(res) : "0"(r0), "r"(r1));
+	return res;
+    }
 }
 
 #endif // #ifndef MOOSE_KERNEL_SYSCALL_H

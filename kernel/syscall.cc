@@ -21,6 +21,7 @@
 #include <uart.h>
 #include <memory.h>
 #include <entry.h>
+#include <task.h>
 
 #include <syscall.h>
 
@@ -37,6 +38,11 @@ namespace Syscall {
         set_mode_stack(MODE_SVC, &stack[1024]);
     }
 
+    union Arg64 {
+	uint32_t u[2];
+	int64_t i;
+    };
+
     uint32_t exception_syscall_handler(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t opcode) {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
@@ -49,6 +55,18 @@ namespace Syscall {
 	UART::puts(", opcode = ");
 	UART::put_uint32(opcode);
 	UART::putc('\n');
-        return ~r0;
+	switch(opcode) {
+	case 0xEF000000: // sleep
+	    union {
+		uint32_t u[2];
+		int64_t i;
+	    } arg;
+	    arg.u[0] = r0;
+	    arg.u[1] = r1;	    
+	    return Task::sys_sleep(arg.i);
+	default:
+	    // FIXME: illegal syscall
+	    return -1;
+	}
     }
 }
