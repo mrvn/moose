@@ -149,14 +149,6 @@ exception_fiq:
 	bl	exception_fiq_handler
 	restore
 
-// Syscall stubs
-.globl syscall
-syscall:
-	push	{lr}
-	swi	#0
-	pop	{lr}
-	bx	lr
-
 // set stack for mode
 // void set_mode_stack(Mode mode, uint32_t *stack_top);
 .globl set_mode_stack
