@@ -129,7 +129,7 @@ namespace Task {
     // activate task, refresh time slice and start timer if needed
     void Task::activate(uint64_t now) {
 	write_kernel_thread_id((uint32_t)this);
-    	start_ = now;
+	start_ = now;
 
 	size_t offset = (uint8_t*)this - (uint8_t*)&(state_list_);
 	uint32_t member = (uint32_t)(state_list_.next()->next());
