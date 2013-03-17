@@ -19,8 +19,16 @@
 #ifndef MOOSE_KERNEL_PANIC_H
 #define MOOSE_KERNEL_PANIC_H
 
+#include <uart.h>
+
 extern "C" {
-    void panic(const char *msg); // msg is ignored for now
+    void abort();
+//    void panic(const char *msg); // msg is ignored for now
+}
+
+static inline void panic(const char *msg) {
+    UART::puts(msg);
+    abort();
 }
 
 #endif // #ifndef MOOSE_KERNEL_PANIC_H
