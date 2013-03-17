@@ -90,7 +90,7 @@ namespace Timer {
 	// avoid recursion from setting new times from callbacks
 	if (in_irq_handler) return;
 	in_irq_handler = true;
-	UART::puts(__PRETTY_FUNCTION__);
+/*	UART::puts(__PRETTY_FUNCTION__);
 	UART::puts("\n Status = ");
 	UART::put_uint32(timer.get(TIMER_CS));
 	UART::puts("\n Count  = ");
@@ -101,11 +101,10 @@ namespace Timer {
 	UART::put_uint32(timer.get(TIMER_C1));
 	UART::puts("\n CMP2   = ");
 	UART::put_uint32(timer.get(TIMER_C3));
-
-	int num = (int)data;
+*/	int num = (int)data;
 	// process timer
 	if (num == 1) {
-	    UART::puts("\n timer 1 expired\n");
+//	    UART::puts("\n timer 1 expired\n");
 	    uint64_t next;
 	again:
 	    uint64_t now = system_time();
@@ -116,41 +115,41 @@ namespace Timer {
 	    } else {
 		next = heap->peek()->priority();
 	    }
-	    UART::puts(" next = ");
+/*	    UART::puts(" next = ");
 	    UART::put_uint32(next >> 32);
 	    UART::putc(' ');
 	    UART::put_uint32(next);
 	    UART::putc('\n');
-	    while((int64_t)(next - now) <= 0) {
+*/	    while((int64_t)(next - now) <= 0) {
 		Timer *t = (Timer*)heap->pop();
 		t->callback();
-		UART::puts("@ after callback\n");
+//		UART::puts("@ after callback\n");
 		if (heap->empty()) {
-		    UART::puts("@ heap empty\n");
+//		    UART::puts("@ heap empty\n");
 		    next = now + 0xFFFFFFFF;
 		    // FIXME: disable timer interrupt?
 		    // Option: Insert dummy timer so this never happens?
 		} else {
 		    next = heap->peek()->priority();
-		    UART::puts("@ next = ");
+/*		    UART::puts("@ next = ");
 		    UART::put_uint32(next);
 		    UART::putc('\n');
-		}
+*/		}
 	    }
 	    timer.set(TIMER_C1, next);
 	    timer.set(TIMER_CS, CTRL_MATCH1);
 	    // make sure we didn't just miss the time
 	    if (((int64_t)(next - system_time())) <= 0) {
-		UART::puts("@ again\n");
+//		UART::puts("@ again\n");
 		goto again;
 	    }
-	    UART::puts("@ done\n");
+//	    UART::puts("@ done\n");
 	} else {
-	    UART::puts("\n timer 2 expired\n");
+//	    UART::puts("\n timer 2 expired\n");
 	    // timer.set(TIMER_C3, timer2);
 	    timer.set(TIMER_CS, CTRL_MATCH3);
 	}
-	UART::putc('\n');
+//	UART::putc('\n');
 	in_irq_handler = false;
     }
 
@@ -231,12 +230,8 @@ namespace Timer {
      * wakeup_time: time when timer expires
      */
     void set_timer(Timer *t, uint64_t wakeup_time) {
-	UART::puts(__PRETTY_FUNCTION__);
-	UART::putc('\n');
-	UART::put_uint32(wakeup_time >> 32);
-	UART::putc(' ');
-	UART::put_uint32(wakeup_time);
-	UART::putc('\n');
+//	UART::puts(__PRETTY_FUNCTION__);
+//	UART::putc('\n');
 	heap->set_priority(t, wakeup_time);
 	// reset timer
 	irq_handler((void*)1);
