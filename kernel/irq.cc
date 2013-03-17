@@ -167,16 +167,6 @@ namespace IRQ {
         uint32_t pending2 = irq.get(PENDING2);
         uint32_t pending  = irq.get(PENDING);
 	
-        // debug all interrupts
-	UART::puts( __PRETTY_FUNCTION__);
-	UART::puts("\nIRQ1 pending: ");
-	UART::put_uint32(pending1);
-	UART::puts("\nIRQ2 pending: ");
-	UART::put_uint32(pending2);
-	UART::puts("\nIRQ  pending: ");
-	UART::put_uint32(pending);
-	UART::putc('\n');
-
 	pending &= MASK_BASIC_IRQ;
 	
 	while(pending1) {

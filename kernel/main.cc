@@ -60,6 +60,54 @@ void blink(void *) {
     }
 }
 
+void pong(void *) {
+    Message::Message *reply =
+	(Message::Message*)Memory::early_malloc(Memory::PAGE_SIZE);
+    while(true) {
+	reply->data[0] = 'P';
+	reply->data[1] = 'o';
+	reply->data[2] = 'n';
+	reply->data[3] = 'g';
+	reply->data[4] = 0;
+	reply->size = 5;
+	UART::puts("### <PONG>: waiting for message\n");
+	Message::Message *msg = Syscall::recv_message();
+	if (msg == NULL) {
+	    UART::puts("### <PONG>: Got no message!\n");
+	    Syscall::sleep(0x1000000);
+	} else {
+	    UART::puts("### <PONG>: Got message: '");
+	    UART::puts((const char*)msg->data);
+	    UART::puts("'\n");
+	    UART::puts("### <PONG>: Sending reply\n");
+	    Syscall::send_message(msg->mailbox_id, reply);
+	}
+    }
+}
+
+void ping(void *) {
+    Message::MailboxId pong_mailbox =
+	Syscall::create_thread("<PONG>", pong, NULL);
+    Message::Message *msg =
+	(Message::Message*)Memory::early_malloc(Memory::PAGE_SIZE);
+    while(true) {
+	msg->data[0] = 'P';
+	msg->data[1] = 'i';
+	msg->data[2] = 'n';
+	msg->data[3] = 'g';
+	msg->data[4] = 0;
+	msg->size = 5;
+	UART::puts("### <PING>: sending ping...\n");
+	Syscall::send_message(pong_mailbox, msg);
+	UART::puts("### <PING>: waiting for reply...\n");
+	Message::Message *reply = Syscall::recv_message();
+	UART::puts("### <PING>: Got reply: '");
+	UART::puts((const char*)reply->data);
+	UART::puts("'\n----------------------------------------\n");
+	Syscall::sleep(10000000);
+    }
+}
+
 // kernel main function, it all begins here
 void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     UNUSED(zero);
@@ -81,7 +129,10 @@ void kernel_main(uint32_t zero, uint32_t model, const ATAG::Header *atags) {
     Timer::init();
 
     // First syscall starts multitasking, fitting that it is creating a task
-    Syscall::create_thread("<BLINK>", blink, NULL);
+    //Syscall::create_thread("<BLINK>", blink, NULL);
+    Message::MailboxId ping_mailbox =
+	Syscall::create_thread("<PING>", ping, nullptr);
+    UNUSED(ping_mailbox);
     
     // we are done, let the other tasks run
     UART::puts("exiting kernel task\n");

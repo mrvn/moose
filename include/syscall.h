@@ -20,6 +20,8 @@
 #define MOOSE_KERNEL_SYSCALL_H
 
 #include <stdint.h>
+#include <message.h>
+#include <task.h>
 
 namespace Syscall {
     void init();
@@ -37,19 +39,31 @@ namespace Syscall {
 	return res;
     }
 
-    typedef void (*start_fn)(void*);
-    static inline uint32_t create_thread(const char *name, start_fn start,
-					 void *arg) {
+    static inline Message::MailboxId create_thread(const char *name,
+						   Task::start_fn start,
+						   void *arg) {
 	register const char *r0 asm("r0") = name;
-	register start_fn r1 asm("r1") = start;
+	register Task::start_fn r1 asm("r1") = start;
 	register void *r2 asm("r2") = arg;
-	register uint32_t res asm("r0");
+	register Message::MailboxId res asm("r0");
 	asm volatile("swi #1" : "=r"(res) : "0"(r0), "r"(r1), "r"(r2));
 	return res;
     }
 
     static inline void end_thread() {
 	asm volatile("swi #2");
+    }
+
+    static inline void send_message(Message::MailboxId id, Message::Message *msg) {
+	register Message::MailboxId r0 asm("r0") = id;
+	register Message::Message *r1 asm("r1") = msg;
+	asm volatile("swi #3" : : "r"(r0), "r"(r1));
+    }
+
+    static inline Message::Message * recv_message() {
+	register Message::Message * res asm("r0");
+	asm volatile("swi #4" : "=r"(res));
+	return res;
     }
 }
 

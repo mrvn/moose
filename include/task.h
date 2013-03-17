@@ -22,10 +22,10 @@
 #include <stdint.h>
 #include <list.h>
 #include <timer.h>
-#include <syscall.h>
+#include <message.h>
 
 namespace Task {
-    enum State { RUNNING, SLEEPING };
+    enum State { RUNNING, SLEEPING, WAITING, LAST=WAITING };
     enum {
 	REG_R0, // arg0 / ret0
 	REG_R1, // arg1 / ret1
@@ -45,53 +45,59 @@ namespace Task {
 	REG_PC,
 	REG_CPSR,
 
-	NUM_STATES = SLEEPING + 1,
+	NUM_STATES = LAST + 1,
 	NUM_REGS = 17,
     };
 
     /*
      * Thread ID registers
      */
-    static inline uint32_t read_kernel_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 4"
-                     : [id]"=r"(id));
-        return id;
+    class Task;
+    static inline Task * read_kernel_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 4"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_kernel_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 4"
-                     : : [id]"r"(id));
+    static inline void write_kernel_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 4"
+                     : : [task]"r"(task));
     }
 
-    static inline uint32_t read_ro_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 3"
-                     : [id]"=r"(id));
-        return id;
+    static inline Task * read_ro_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 3"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_ro_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 3"
-                     : : [id]"r"(id));
+    static inline void write_ro_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 3"
+                     : : [task]"r"(task));
     }
 
-    static inline uint32_t read_rw_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 2"
-                     : [id]"=r"(id));
-        return id;
+    static inline Task * read_rw_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 2"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_rw_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 2"
-                     : : [id]"r"(id));
+    static inline void write_rw_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 2"
+                     : : [task]"r"(task));
     }
+
+    typedef void (*start_fn)(void*);
 
     // Task structure
+    enum {
+	NUM_MAILBOXES = 8,
+    };
     class Task {
     public:
-	Task(const char *name__, Syscall::start_fn start, void *arg,
+	Task(const char *name__, start_fn start, void *arg,
 	     State state__ = RUNNING,
 	     Timer::Timer::callback_fn timer_callback = timer_callback);
 	~Task();
@@ -103,22 +109,31 @@ namespace Task {
 	static Task * current() { return (Task*)read_kernel_thread_id(); }
 	Timer::Timer *timer() { return &timer_; }
 	void wakeup();
+	void send_message(Message::MailboxId id, Message::Message *msg);
+	Message::Message *get_message();
+	Message::MailboxId create_task(const char *name__, start_fn start, void *arg);
     private:
 	uint32_t regs_[NUM_REGS];
 	const char *name_;
 	State state_;
-	List::DList all_list_;
-	List::DList state_list_;
+	List::CDList all_list_;
+	List::CDList state_list_;
 	Timer::Timer timer_;
 	uint64_t start_;
 	uint32_t remaining_;
+	List::CDHead<Message::Message, &Message::Message::list> incoming_;
+	uint32_t mailboxes_;
+	Message::Mailbox mailbox_[NUM_MAILBOXES];
 	
 	void fix_kernel_stack();
 	friend void init();
 	static void timer_callback(Timer::Timer *timer, void *data);
 	static Task * deactivate(uint64_t now);
 	void activate(uint64_t now);
-	static void starter(Task *task, Syscall::start_fn start, void *arg);
+	static void starter(start_fn start, void *arg);
+	static List::CDHead<Task, &Task::all_list_> all_head;
+	static List::CDList *state_head[NUM_STATES];
+	static void dump_tasks();
     };
 
     /*
@@ -131,6 +146,12 @@ namespace Task {
      * time: nanoseconds to sleep
      */
     uint32_t sys_sleep(int64_t time);
+
+    /*
+     * return pending message or wait for one
+     * returns: pointer to message or NULL
+     */
+    Message::Message * sys_recv_message();
 }
 
 #endif // #ifndef MOOSE_KERNEL_TASK_H
