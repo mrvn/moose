@@ -70,15 +70,8 @@ namespace Timer {
 
     Timer::Timer(const char *name__, Task::Task *owner__, uint64_t wakeup_time,
 		 callback_fn callback__, void *data__)
-	: Item(wakeup_time), list(), name_(name__),
-	  owner_(owner__), callback_(callback__), data_(data__) {
-	UART::puts(__PRETTY_FUNCTION__);
-	UART::putc('\n');
-	// FIXME: should use kernel task
-	if (owner_ != NULL) {
-	    owner_->timer()->list.insert_before(&list);
-	}
-    }
+	: Item(wakeup_time), name_(name__),
+	  owner_(owner__), callback_(callback__), data_(data__) { }
 
     Heap::Heap<Timer> *heap;
     Memory::Peripheral timer;

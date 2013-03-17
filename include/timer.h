@@ -21,7 +21,6 @@
 
 #include <stdint.h>
 #include <heap.h>
-#include <list.h>
 
 namespace Task {
     class Task;
@@ -38,7 +37,6 @@ namespace Timer {
 	Task::Task * owner() const { return owner_; }
 	void callback() { callback_(this, data_); }
     private:
-	List::DList list;
 	const char *name_;
 	Task::Task * const owner_;
 	const callback_fn callback_;
