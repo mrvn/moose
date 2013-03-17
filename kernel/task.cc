@@ -128,7 +128,7 @@ namespace Task {
     // Account for the time spend on the current task and return it
     Task * Task::deactivate(uint64_t now) {
 	// get current running task
-	Task *task = (Task*)read_kernel_thread_id();
+	Task *task = read_kernel_thread_id();
 	// subtract used time
 	int32_t used = now - task->start_;
 	int32_t remaining = task->remaining_ - used;
@@ -142,7 +142,7 @@ namespace Task {
 
     // activate task, refresh time slice and start timer if needed
     void Task::activate(uint64_t now) {
-	write_kernel_thread_id((uint32_t)this);
+	write_kernel_thread_id(this);
 	start_ = now;
 
 	size_t offset = (uint8_t*)this - (uint8_t*)&(state_list_);
@@ -271,7 +271,7 @@ namespace Task {
     void Task::die() {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
-	Task *task = (Task*)read_kernel_thread_id();
+	Task *task = read_kernel_thread_id();
 	// select a new task
 	// change to SLEEPING to prevent geting picked again
 	schedule(SLEEPING);
@@ -307,7 +307,7 @@ namespace Task {
 	kernel->fix_kernel_stack();
 
     	// load thread register
-	write_kernel_thread_id((uint32_t)kernel);
+	write_kernel_thread_id(kernel);
     }
 
     extern "C" {
@@ -325,7 +325,7 @@ namespace Task {
 	    // yield
 	    Task::schedule(RUNNING);
 	} else if (time > 0) {
-	    Task *task = (Task*)read_kernel_thread_id();
+	    Task *task = read_kernel_thread_id();
 	    uint64_t wakeup = Timer::system_time() + time;
 	    Task::schedule(SLEEPING);
 	    Timer::set_timer(task->timer(), wakeup);

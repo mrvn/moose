@@ -52,40 +52,41 @@ namespace Task {
     /*
      * Thread ID registers
      */
-    static inline uint32_t read_kernel_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 4"
-                     : [id]"=r"(id));
-        return id;
+    class Task;
+    static inline Task * read_kernel_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 4"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_kernel_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 4"
-                     : : [id]"r"(id));
+    static inline void write_kernel_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 4"
+                     : : [task]"r"(task));
     }
 
-    static inline uint32_t read_ro_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 3"
-                     : [id]"=r"(id));
-        return id;
+    static inline Task * read_ro_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 3"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_ro_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 3"
-                     : : [id]"r"(id));
+    static inline void write_ro_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 3"
+                     : : [task]"r"(task));
     }
 
-    static inline uint32_t read_rw_thread_id() {
-        uint32_t id;
-        asm volatile("mrc p15, 0, %[id], c13, c0, 2"
-                     : [id]"=r"(id));
-        return id;
+    static inline Task * read_rw_thread_id() {
+        Task *task;
+        asm volatile("mrc p15, 0, %[task], c13, c0, 2"
+                     : [task]"=r"(task));
+        return task;
     }
 
-    static inline void write_rw_thread_id(uint32_t id) {
-        asm volatile("mcr p15, 0, %[id], c13, c0, 2"
-                     : : [id]"r"(id));
+    static inline void write_rw_thread_id(Task *task) {
+        asm volatile("mcr p15, 0, %[task], c13, c0, 2"
+                     : : [task]"r"(task));
     }
 
     // Task structure
