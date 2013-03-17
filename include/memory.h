@@ -120,9 +120,9 @@ namespace Memory {
 	    if (offset >= size) panic("Memory::Peripheral::set() beyond end!");
 	    base[offset / 4] = data;
 	}
-	explicit Peripheral() : base(0), size(0) { }
+	explicit Peripheral() { }
 	bool valid() {
-	    return (base != NULL) && (size != 0);
+	    return (base != nullptr) && (size != 0);
 	}
 	Peripheral & operator=(const Peripheral& p) {
 	    if (valid()) panic("Memory::Peripheral::operator=() misuse!");
