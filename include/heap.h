@@ -20,6 +20,7 @@
 #define MOOSE_HEAP_H
 
 #include <stdint.h>
+#include <panic.h>
 
 namespace Heap {
     enum {
