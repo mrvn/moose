@@ -41,9 +41,9 @@ addr_exception_fiq:		.word exception_fiq
 	
 /* Save context before jumping to C code
  * At exit:
- * r0 - current Task
- * r1 - Task->regs[17] (CPSR)
- * r2 - CPSR
+ * r4 - current Task
+ * r5 - Task->regs[17] (CPSR)
+ * r6 - CPSR
  * lr - return address
  */
 .macro save, offset
@@ -56,18 +56,18 @@ addr_exception_fiq:		.word exception_fiq
 
 	// save registers
 	stmia	lr, {r0-r14}^
-	add	r1, lr, #60 // 4byte * 15
+	add	r5, lr, #60 // 4byte * 15
 
 	// store current Task for later
-	mov	r0, lr
+	mov	r4, lr
 
 	// store user/sys PC (was in lr)
 	pop	{lr}
-	stmia	r1!, {lr}
+	stmia	r5!, {lr}
 
 	// store user/sys CPSR
-	mrs	r2, spsr
-	stmia	r1, {r2}
+	mrs	r6, spsr
+	stmia	r5, {r6}
 .endm
 
 // Restore context before returning from exception/interrupt/syscall
@@ -109,18 +109,26 @@ exception_undefined:
 .globl exception_syscall
 exception_syscall:
 	save	0
-	// lookup opcode of syscall
-	ldr	r3, [lr, #-4]
-	// restore arg0 - arg2
-	mov	r4, r0
-	ldmia	r4, {r0-r2}
-	bl	exception_syscall_handler
+	// lookup syscall number
+	ldr	r7, =syscall_table
+	ldr	r8, [lr, #-4]
+	sub	r8, r8, #0xef000000
+	ldr	r9, [r7, r8, asl #2]
+	// call syscall	function
+	blx	r9
 	// store result
 	stmia	r4, {r0}
 	// schedule after every syscall for now
 	// bl	schedule
 	restore
 
+syscall_table:
+	.word syscall_sleep
+	.word syscall_create_task
+	.word syscall_end_task
+	.word syscall_send_message
+	.word syscall_recv_message
+	
 .globl exception_prefetch_abort
 exception_prefetch_abort:
 	save	4
