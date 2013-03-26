@@ -36,10 +36,9 @@
 #include <irq.h>
 #include <uart.h>
 #include <task.h>
+#include <new>
 
 #include <timer.h>
-
-void * operator new(size_t, void *p) { return p; }
 
 namespace Timer {
     enum {
