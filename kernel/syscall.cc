@@ -21,6 +21,7 @@
 #include <uart.h>
 #include <memory.h>
 #include <entry.h>
+#include <message.h>
 #include <task.h>
 
 #include <syscall.h>
@@ -29,7 +30,15 @@ namespace Syscall {
     extern "C" {
         // called from entry.S. Declaring it extern "C" avoid
         // having to deal with the C++ name mangling.
-        uint32_t exception_syscall_handler(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t opcode);
+        uint32_t syscall_sleep(uint64_t delay);
+	Message::MailboxId syscall_create_task(const char *name,
+					       Task::start_fn start,
+					       void *arg,
+					       Message::MailboxId stdio[3]);
+	uint32_t syscall_end_task();
+	uint32_t syscall_send_message(Message::MailboxId id,
+				      Message::Message *msg);
+	Message::Message * syscall_recv_message();
     }
 
     void init() {
@@ -43,63 +52,42 @@ namespace Syscall {
 	int64_t i;
     };
 
-    uint32_t exception_syscall_handler(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t opcode) {
+    uint32_t syscall_sleep(uint64_t delay) {
 	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
-	UART::puts("  R0 = ");
-	UART::put_uint32(r0);
-	UART::puts(", R1 = ");
-	UART::put_uint32(r1);
-	UART::puts(", R2 = ");
-	UART::put_uint32(r2);
-	UART::puts(", opcode = ");
-	UART::put_uint32(opcode);
+	return Task::sys_sleep(delay);
+    }
+
+    Message::MailboxId syscall_create_task(const char *name,
+					     Task::start_fn start,
+					     void *arg,
+					     Message::MailboxId stdio[3]) {
+	UART::puts(__PRETTY_FUNCTION__);
 	UART::putc('\n');
-	switch(opcode) {
-	case 0xEF000000: { // sleep
-	    union {
-		uint32_t u[2];
-		int64_t i;
-	    } arg;
-	    arg.u[0] = r0;
-	    arg.u[1] = r1;	    
-	    return Task::sys_sleep(arg.i);
-	}
-	case 0xEF000001: { // create_thread
-	    const char *name = (const char*)r0;
-	    Task::start_fn start = (Task::start_fn)r1;
-	    void *arg = (void*)r2;
-	    UART::puts("  create_thread(");
-	    UART::puts(name);
-	    UART::puts(", ");
-	    UART::put_uint32(r1);
-	    UART::puts(", ");
-	    UART::put_uint32(r2);
-	    UART::puts(")\n");
-	    Task::Task *task = Task::read_kernel_thread_id();
-	    Message::MailboxId id = task->create_task(name, start, arg);
-	    UART::puts("  id = ");
-	    UART::put_uint32(id);
-	    UART::putc('\n');
-	    return id;
-	}
-	case 0xEF000002: { // end_thread
-	    Task::Task::die();
-	    return 0;
-	}
-	case 0xEF000003: { // send_message
-	    Message::MailboxId id = r0;
-	    Message::Message *msg = (Message::Message*)r1;
-	    Task::Task *task = Task::read_kernel_thread_id();
-	    task->send_message(id, msg);
-	    return 0;
-	}
-	case 0xEF000004: { // recv_message
-	    return (uint32_t)Task::sys_recv_message();
-	}
-	default:
-	    // FIXME: illegal syscall
-	    return -1;
-	}
+	Task::Task *task = Task::read_kernel_thread_id();
+	Message::MailboxId id = task->create_task(name, start, arg, stdio);
+	return id;
+    }
+
+    uint32_t syscall_end_task() {
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::putc('\n');
+	Task::Task::die();
+	return 0;
+    }
+
+    uint32_t syscall_send_message(Message::MailboxId id,
+				  Message::Message *msg) {
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::putc('\n');
+	Task::Task *task = Task::read_kernel_thread_id();
+	task->send_message(id, msg);
+	return 0;
+    }
+    
+    Message::Message * syscall_recv_message() {
+	UART::puts(__PRETTY_FUNCTION__);
+	UART::putc('\n');
+	return Task::sys_recv_message();
     }
 }

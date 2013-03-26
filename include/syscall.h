@@ -39,14 +39,15 @@ namespace Syscall {
 	return res;
     }
 
-    static inline Message::MailboxId create_thread(const char *name,
-						   Task::start_fn start,
-						   void *arg) {
+    static inline Message::MailboxId
+    create_thread(const char *name, Task::start_fn start, void *arg,
+		  const Message::MailboxId stdio[3] = Message::DefStdio) {
 	register const char *r0 asm("r0") = name;
 	register Task::start_fn r1 asm("r1") = start;
 	register void *r2 asm("r2") = arg;
+	register const Message::MailboxId *r3 asm("r3") = stdio;
 	register Message::MailboxId res asm("r0");
-	asm volatile("swi #1" : "=r"(res) : "0"(r0), "r"(r1), "r"(r2));
+	asm volatile("swi #1" : "=r"(res) : "0"(r0), "r"(r1), "r"(r2), "r"(r3));
 	return res;
     }
 
