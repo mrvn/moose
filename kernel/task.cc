@@ -71,7 +71,7 @@ namespace Task {
 	: name_(name__), state_(state__), all_list_(List::CDList()),
 	  state_list_(List::CDList()),
 	  timer_(name__, this, 0, timer_callback__, this),
-	  start_(0), remaining_(0), mailboxes_(0) {
+	  start_(0), remaining_(0) {
 	for (int i = 0; i < NUM_REGS; ++i) {
 	    regs_[i] = 0xCAFEBABE;
 	}
@@ -288,15 +288,27 @@ namespace Task {
      * arg:     argument to start function
      * returns: id of mailbox connected to new task
      */
-    Message::MailboxId Task::create_task(const char *name__, start_fn start, void *arg) {
-	if (mailboxes_ == NUM_MAILBOXES) {
-	    panic("Task::create_task(): out of mailboxes!");
-	}
-	Message::MailboxId id = mailboxes_++;
+    Message::MailboxId Task::create_task(const char *name__, start_fn start,
+					 void *arg,
+					 const Message::MailboxId stdio[3]) {
 	Task *task = new Task(name__, start, arg);
-	++task->mailboxes_;
-	mailbox_[id].connect(task->mailbox_[0]);
+	for (int i = 0; i < 3; ++i) { // stdin, stdout, stderr
+	    if (stdio[i] != (Message::MailboxId)-1) {
+		Message::MailboxId id = dup(i);
+		move_mailbox(id, task, i);
+	    }
+	}
+	Message::MailboxId id = alloc_mailbox(); // parent
+	mailbox_[id].connect(task->mailbox_[3]);
 	return id;
+    }
+
+    void Task::move_mailbox(Message::MailboxId src, Task *task, Message::MailboxId dst) {
+	// FIXME: sanity check
+	Message::Mailbox *box = mailbox_[src].other_;
+	box->other_ = &(task->mailbox_[dst]);
+	task->mailbox_[dst].other_ = box;
+	mailbox_[src].other_ = nullptr;
     }
     
     void init() {
@@ -371,8 +383,11 @@ namespace Task {
     }
 
     void Task::send_message(Message::MailboxId id, Message::Message *msg) {
-	if (id >= mailboxes_) {
+	if (id >= NUM_MAILBOXES) {
 	    panic("Task::send_message(): illegal id\n");
+	}
+	if (!mailbox_[id].is_connected()) {
+	    panic("Task::send_message(): not connected\n");
 	}
 	Message::Mailbox *dest = mailbox_[id].other();
 	Task *task = dest->owner();
@@ -393,5 +408,45 @@ namespace Task {
 	    return nullptr;
 	}
     }
-}
 
+    Message::MailboxId Task::dup(Message::MailboxId id) {
+	if (id >= NUM_MAILBOXES) {
+	    panic("Task::dup(): illegal id\n");
+	}
+	if (!mailbox_[id].is_connected()) {
+	    panic("Task::dup(): not connected\n");
+	}
+	Message::MailboxId id2 = alloc_mailbox();
+	Task *task = mailbox_[id].other()->owner();
+	Message::MailboxId id3 = task->alloc_mailbox();
+	if (id2 == (Message::MailboxId)-1 || id3 == (Message::MailboxId)-1) {
+	    panic("Task::dup(): out of mailboxes!");
+	}
+	mailbox_[id2].connect(task->mailbox_[id3]);
+	return id2;
+    }
+
+    Message::MailboxId Task::alloc_mailbox() {
+	// skip stdin, stdout, stderr, parent
+	for (Message::MailboxId i = 4; i < NUM_MAILBOXES; ++i) {
+	    if (!mailbox_[i].is_connected()) {
+		return i;
+	    }
+	}
+	panic("Task::alloc_mailbox(): out of mailboxes!");
+	return -1;
+    }
+
+    /*static*/ void Task::init_console_mailboxes(Task *console) {
+	Task *task = read_kernel_thread_id();
+	if (task->mailbox_[0].is_connected()
+	    || task->mailbox_[1].is_connected()
+	    || task->mailbox_[2].is_connected()) {
+	    panic("Task::init_console_mailboxes(): already have stdio\n");
+	}
+	for (int i = 0; i < 3; ++i) {
+	    Message::MailboxId id = console->alloc_mailbox();
+	    task->mailbox_[i].connect(console->mailbox_[id]);
+	}
+    }
+}

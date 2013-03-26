@@ -93,7 +93,7 @@ namespace Task {
 
     // Task structure
     enum {
-	NUM_MAILBOXES = 8,
+	NUM_MAILBOXES = 32,
     };
     class Task {
     public:
@@ -111,7 +111,8 @@ namespace Task {
 	void wakeup();
 	void send_message(Message::MailboxId id, Message::Message *msg);
 	Message::Message *get_message();
-	Message::MailboxId create_task(const char *name__, start_fn start, void *arg);
+	Message::MailboxId create_task(const char *name__, start_fn start, void *arg, const Message::MailboxId stdio[3] = Message::DefStdio);
+	static void init_console_mailboxes(Task *console);
     private:
 	uint32_t regs_[NUM_REGS];
 	const char *name_;
@@ -122,7 +123,6 @@ namespace Task {
 	uint64_t start_;
 	uint32_t remaining_;
 	List::CDHead<Message::Message, &Message::Message::list> incoming_;
-	uint32_t mailboxes_;
 	Message::Mailbox mailbox_[NUM_MAILBOXES];
 	
 	void fix_kernel_stack();
@@ -134,6 +134,9 @@ namespace Task {
 	static List::CDHead<Task, &Task::all_list_> all_head;
 	static List::CDList *state_head[NUM_STATES];
 	static void dump_tasks();
+	Message::MailboxId alloc_mailbox();
+	Message::MailboxId dup(Message::MailboxId id);
+	void move_mailbox(Message::MailboxId src, Task *task, Message::MailboxId dst);
     };
 
     /*

@@ -19,6 +19,7 @@
 #ifndef MOOSE_MESSAGE_H
 #define MOOSE_MESSAGE_H
 
+#include <panic.h>
 #include <list.h>
 
 namespace Task {
@@ -27,6 +28,9 @@ namespace Task {
 
 namespace Message {
     typedef uint32_t MailboxId;
+    static const MailboxId NoId = ~0;
+    extern const MailboxId NoStdio[3];
+    extern const MailboxId DefStdio[3];
 
     class Mailbox;
 
@@ -35,12 +39,62 @@ namespace Message {
 	uint32_t i;
     };
 
-    struct Message {
+    enum Type {
+	CUSTOM,
+	SIG_CHILD,
+	SIG_PARENT,
+	REQUEST_READ,
+	REQUEST_WRITE,
+	REPLY_READ,
+    };
+    
+    class Message {
+    public:
+	Message(Type type__) : list(), mailbox_id(NoId), mailbox_data({.ptr = nullptr}), type(type__) { }
 	List::CDList list;
 	MailboxId mailbox_id;
 	Data mailbox_data;
+	Type type;
+    };
+
+    class CustomMessage : public Message {
+    public:
+	CustomMessage() : Message(CUSTOM) { }
+    };
+    
+    class ReadRequest : public Message {
+    public:
+	ReadRequest(size_t size__) : Message(REQUEST_READ), size(size__), data() { }
 	size_t size;
-	uint8_t data[];
+	char data[];
+    };
+
+    class WriteRequest : public Message {
+    public:
+	WriteRequest(const char *str) : Message(REQUEST_WRITE), size(0) {
+	    while(*str) {
+		data[size] = *str;
+		++size;
+		++str;
+	    }
+	    data[size] = 0;
+	    ++size;
+	}
+	size_t size;
+	char data[];
+    };
+
+    class ReadReply : public Message {
+    public:
+	ReadReply(size_t size__, const char *data__)
+	    : Message(REPLY_READ), size(size__) {
+	    // FIXME: use memcpy
+	    for (size_t i = 0; i < size; ++i) {
+		data[i] = data__[i];
+	    }
+	}
+	size_t size;
+	char data[];
     };
 
     class Mailbox {
@@ -67,6 +121,16 @@ namespace Message {
 	    }
 	    other_ = &box;
 	    box.other_ = this;
+	}
+	bool is_connected() {
+	    return other_ != nullptr;
+	}
+	void disconnect() {
+	    if (other_ == nullptr) {
+		panic("Message::Mailbox::disconnect(): already disconneced!");
+	    }
+	    other_->other_ = nullptr;
+	    other_ = nullptr;
 	}
 	Data data;
     private:
