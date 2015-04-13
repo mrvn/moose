@@ -1,0 +1,8 @@
+LDSCRIPT .kernel
+FLAGS _tmp-y.o += -D__KERNEL__
+
+SRC y start.S
+SRC y /arch_info.c
+SRC y /uart.c
+SRC y /kprintf.c
+SRC y main.c
