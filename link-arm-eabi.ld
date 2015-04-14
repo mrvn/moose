@@ -18,9 +18,12 @@
 
 ENTRY(_start)
 
+PHYS_TO_VIRT = 0x80000000;
+VIRT_TO_PHYS = 0x80000000;
+
 SECTIONS
 {
-    /* Starts at LOADER_ADDR. */
+    /* Start in physical memory */
     . = 0x8000;
     .text.boot : {
 	_text_boot_start = .;
@@ -28,35 +31,43 @@ SECTIONS
 	. = ALIGN(4096);
 	_text_boot_end = .;
     }
-    .text.kernel ALIGN(4096) : {
+    /* kernel in higher half */
+    . = . + PHYS_TO_VIRT;
+    .text.kernel ALIGN(4096) : AT(ADDR(.text.kernel) - PHYS_TO_VIRT) {
     	_text_kernel_start = .;
         *(.text.kernel)
+        *(.text.exec)
 	. = ALIGN(4096);
         _text_kernel_end = .;
     }
-    .text.common ALIGN(4096) : {
+    .text.common ALIGN(4096) : AT(ADDR(.text.common) - PHYS_TO_VIRT) {
     	_text_common_start = .;
         *(.text)
 	. = ALIGN(4096);
         _text_common_end = .;
     }
-    .rodata.kernel ALIGN(4096) : {
+    .rodata.kernel ALIGN(4096) : AT(ADDR(.rodata.kernel) - PHYS_TO_VIRT) {
         _rodata_kernel_start = .;
 	*(.rodata.kernel)
+	*(.rodata.exec)
 	. = ALIGN(4096);
         _rodata_kernel_end = .;
     }
-    .data.kernel ALIGN(4096) : {
+    .data.kernel ALIGN(4096) : AT(ADDR(.data.kernel) - PHYS_TO_VIRT) {
         _data_kernel_start = .;
         *(.data.kernel)
+        *(.data.exec)
         _data_kernel_end = .;
     }
-    .bss.kernel : {
+    .bss.kernel : AT(ADDR(.bss.kernel) - PHYS_TO_VIRT) {
         _bss_kernel_start = .;
         *(.bss.kernel)
+        *(.bss.exec)
 	. = ALIGN(4096);
         _bss_kernel_end = .;
     }
+    /* bss for boot is physical again */
+    . = . + VIRT_TO_PHYS;
     .bss.boot ALIGN(4096) : {
     	*(.bss.boot)
     }

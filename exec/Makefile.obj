@@ -1,0 +1,6 @@
+LDSCRIPT .exec
+FLAGS _tmp-y.o += -D__EXEC__
+
+SRC y /arch_info.c
+SRC y /uart.c
+SRC y /kprintf.c
