@@ -15,7 +15,18 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* assembly code to map virtual memory and jump to higher half */
+/* assembly code to map virtual memory and jump to higher half
+ *
+ * This code is written completely position independent. All physical
+ * addresses are automatically corrected for the address the image is
+ * actually loaded and executed from at runtime. The code builds a 16k
+ * kernel page table, adds an identity mappings for itself, the page
+ * tables, the atag data, the peripherals and the boot info structure
+ * and maps all the higher half segments into the higher half of the
+ * address space. It then enables caching and the MMU and jumps to the
+ * higher half entry point. The address of boot info is passed in r0,
+ * the system ID in r1 and the atags in r2.
+ */
 
 #define VIRT_TO_PHYS 0x80000000
 
@@ -40,7 +51,7 @@ _start:
 	// r0 = 0
 	// r1 = 0xC42 (ID for Raspberry Pi)
 	// r2 = ATAGS
-	// those must be preserved to the kernel_start function
+	// those must be preserved for the kernel_start function
 
 	// r12 = offset between where _start should be and where it is
 	// used to correct constant loading of physical addresses
