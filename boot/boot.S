@@ -23,27 +23,16 @@
 .global _start
 .type _start, STT_FUNC
 
-// load an address relative to the PC
-.macro load,reg,name
-1:
-	ldr	\reg, 2f
-	add	\reg, \reg, pc
-	b	3f
-2:
-	.word	\name - 1b - 12
-3:
+// load a physical address relative to _start
+.macro ld_phys,reg,name
+	ldr	\reg, =\name
+	add	\reg, \reg, r12
 .endm
 
-// load physical address of virtual symbol relative to the PC
-.macro phys,reg,name
-1:
-	ldr	\reg, 2f
-	add	\reg, \reg, pc
-	add	\reg, #VIRT_TO_PHYS
-	b	3f
-2:
-	.word	\name - 1b - 12
-3:
+// load physical address of virtual symbol relative to _start
+.macro ld_virt,reg,name
+	ldr	\reg, =\name
+	add	\reg, \reg, r11
 .endm
 
 _start:
@@ -53,11 +42,19 @@ _start:
 	// r2 = ATAGS
 	// those must be preserved to the kernel_start function
 
+	// r12 = offset between where _start should be and where it is
+	// used to correct constant loading of physical addresses
+	sub	r12, pc, #8
+	ldr	r3, =_start
+	sub	r12, r12, r3
+	// r11 = offset for physical address of virtual symbols
+	add	r11, r12, #VIRT_TO_PHYS
+	
 	// construct kernel page table
-        // addr(22) P DOM(4) 0 NS 0 0 1
 construct_kernel_page_table:
-	load	r3, kernel_page_table
-	load	r4, kernel_leaf_tables
+	ls_phys	r3, kernel_page_table
+	ls_phys	r4, kernel_leaf_tables
+        // addr(22) P DOM(4) 0 NS 0 0 1 = addr | 0b0000000001
 	orr	r4, r4, #0x001		// coarse leaf table
 	add	r5, r3, #16384		// 4096 leaf table entries
 1:	str	r4, [r3], #4		// store entry
@@ -67,7 +64,7 @@ construct_kernel_page_table:
 
 clear_leaf:
 	// clear kernel leaf tables
-	load	r3, kernel_leaf_tables
+	ls_phys	r3, kernel_leaf_tables
 	mov	r4, #0			// translation fault
 	add	r5, r3, #1024 * 4096	// 4096 1k tables
 1:	str	r4, [r3], #4		// store entry
@@ -77,12 +74,12 @@ clear_leaf:
 map_memory:
 	// map memory
 	// r3 = base of leaf tables
-	load	r3, kernel_leaf_tables
+	ls_phys	r3, kernel_leaf_tables
 map_boot_code:
 	// identity map boot code
-	load	r4, _text_boot_start	// PC relative boot code start
+	ls_phys	r4, _text_boot_start	// PC relative boot code start
 	mov	r5, r4			// phys = virt
-	load	r6, _text_boot_end	// PC relative boot code end
+	ls_phys	r6, _text_boot_end	// PC relative boot code end
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, exec, not global
         // 0b1101 0101 0110
@@ -92,8 +89,8 @@ map_boot_code:
 map_kernel_text:
 	// map kernel text segment
 	ldr	r4, =_text_kernel_start	// absolute (virtual) code start
-	phys	r5, _text_kernel_start  // PC relative (physical) code start
-	phys	r6, _text_kernel_end	// PC relative (physical) code end
+	ld_virt	r5, _text_kernel_start  // PC relative (physical) code start
+	ld_virt	r6, _text_kernel_end	// PC relative (physical) code end
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-only, exec, global
         // 0b0111 0101 0110
@@ -103,8 +100,8 @@ map_kernel_text:
 map_common_text:
 	// map common text segment
 	ldr	r4, =_text_common_start	// absolute (virtual) code start
-	phys	r5, _text_common_start	// PC relative (physical) code start
-	phys	r6, _text_common_end	// PC relative (physical) code end
+	ld_virt	r5, _text_common_start	// PC relative (physical) code start
+	ld_virt	r6, _text_common_end	// PC relative (physical) code end
         // outer and inner write back, write allocate, shareable,
 	// accessed, user read-only, exec, global
         // 0b0111 0111 0110
@@ -114,8 +111,8 @@ map_common_text:
 map_kernel_rodata:
 	// map kernel rodata segment
 	ldr	r4, =_rodata_kernel_start// absolute (virtual) rodata start
-	phys	r5, _rodata_kernel_start// PC relative (physical) rodata start
-	phys	r6, _rodata_kernel_end	// PC relative (physical) rodata end
+	ld_virt	r5, _rodata_kernel_start// PC relative (physical) rodata start
+	ld_virt	r6, _rodata_kernel_end	// PC relative (physical) rodata end
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-only, not exec, global
         // 0b0111 0101 0111
@@ -125,8 +122,8 @@ map_kernel_rodata:
 map_kernel_data_bss:
 	// map kernel data and bss segment
 	ldr	r4, =_data_kernel_start	// absolute (virtual) data start
-	phys	r5, _data_kernel_start	// PC relative (physical) data start
-	phys	r6, _bss_kernel_end	// PC relative (physical) data end
+	ld_virt	r5, _data_kernel_start	// PC relative (physical) data start
+	ld_virt	r6, _bss_kernel_end	// PC relative (physical) data end
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, not exec, global
         // 0b0101 0101 0111
@@ -135,9 +132,9 @@ map_kernel_data_bss:
 
 map_page_tables:
 	// map page tables
-	load	r4, kernel_page_table	// PC relative kernel page tables
+	ls_phys	r4, kernel_page_table	// PC relative kernel page tables
 	mov	r5, r4			// phys = virt
-	load	r6, boot_info		// PC relative boot info
+	ls_phys	r6, boot_info		// PC relative boot info
 	add	r6, r6, #4096		// page after boot info
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, not exec, not global
@@ -169,10 +166,10 @@ map_peripherals:
 
 fill_boot_info:
 	// fill out boot info
-	load	r0, boot_info
-	load	r3, kernel_page_table
+	ls_phys	r0, boot_info
+	ls_phys	r3, kernel_page_table
 	str	r3, [r0, #0]
-	load	r3, kernel_leaf_tables
+	ls_phys	r3, kernel_leaf_tables
 	str	r3, [r0, #4]
 
 enable_mmu:
@@ -197,7 +194,7 @@ enable_mmu:
 
         // set TTBR0 (page table walk inner and outer write-back,
         // write-allocate, cacheable, shareable memory)
-	load	r3, kernel_page_table
+	ls_phys	r3, kernel_page_table
 	orr	r3, r3, #0b1001010
 	mcr	p15, 0, r3, c2, c0, 0
 	// same for TTBR1
