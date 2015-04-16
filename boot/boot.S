@@ -63,8 +63,8 @@ _start:
 	
 	// construct kernel page table
 construct_kernel_page_table:
-	ls_phys	r3, kernel_page_table
-	ls_phys	r4, kernel_leaf_tables
+	ld_phys	r3, kernel_page_table
+	ld_phys	r4, kernel_leaf_tables
         // addr(22) P DOM(4) 0 NS 0 0 1 = addr | 0b0000000001
 	orr	r4, r4, #0x001		// coarse leaf table
 	add	r5, r3, #16384		// 4096 leaf table entries
@@ -75,7 +75,7 @@ construct_kernel_page_table:
 
 clear_leaf:
 	// clear kernel leaf tables
-	ls_phys	r3, kernel_leaf_tables
+	ld_phys	r3, kernel_leaf_tables
 	mov	r4, #0			// translation fault
 	add	r5, r3, #1024 * 4096	// 4096 1k tables
 1:	str	r4, [r3], #4		// store entry
@@ -85,12 +85,12 @@ clear_leaf:
 map_memory:
 	// map memory
 	// r3 = base of leaf tables
-	ls_phys	r3, kernel_leaf_tables
+	ld_phys	r3, kernel_leaf_tables
 map_boot_code:
 	// identity map boot code
-	ls_phys	r4, _text_boot_start	// PC relative boot code start
+	ld_phys	r4, _text_boot_start	// PC relative boot code start
 	mov	r5, r4			// phys = virt
-	ls_phys	r6, _text_boot_end	// PC relative boot code end
+	ld_phys	r6, _text_boot_end	// PC relative boot code end
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, exec, not global
         // 0b1101 0101 0110
@@ -143,9 +143,9 @@ map_kernel_data_bss:
 
 map_page_tables:
 	// map page tables
-	ls_phys	r4, kernel_page_table	// PC relative kernel page tables
+	ld_phys	r4, kernel_page_table	// PC relative kernel page tables
 	mov	r5, r4			// phys = virt
-	ls_phys	r6, boot_info		// PC relative boot info
+	ld_phys	r6, boot_info		// PC relative boot info
 	add	r6, r6, #4096		// page after boot info
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, not exec, not global
@@ -177,10 +177,10 @@ map_peripherals:
 
 fill_boot_info:
 	// fill out boot info
-	ls_phys	r0, boot_info
-	ls_phys	r3, kernel_page_table
+	ld_phys	r0, boot_info
+	ld_phys	r3, kernel_page_table
 	str	r3, [r0, #0]
-	ls_phys	r3, kernel_leaf_tables
+	ld_phys	r3, kernel_leaf_tables
 	str	r3, [r0, #4]
 
 enable_mmu:
@@ -205,7 +205,7 @@ enable_mmu:
 
         // set TTBR0 (page table walk inner and outer write-back,
         // write-allocate, cacheable, shareable memory)
-	ls_phys	r3, kernel_page_table
+	ld_phys	r3, kernel_page_table
 	orr	r3, r3, #0b1001010
 	mcr	p15, 0, r3, c2, c0, 0
 	// same for TTBR1
