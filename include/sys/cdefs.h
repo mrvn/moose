@@ -18,7 +18,7 @@
 // Striped down for RaspberryPi-baremetal use
 
 #ifndef	_SYS_CDEFS_H
-#define	_SYS_CDEFS_H	1
+#define	_SYS_CDEFS_H 	1
 
 /* All functions, except those with callbacks or those that
    synchronize memory, are leaf functions.  */

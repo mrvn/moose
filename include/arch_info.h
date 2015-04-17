@@ -19,7 +19,7 @@
  */
 
 #ifndef KERNEL_ARCHINFO_H
-#define KERNEL_ARCHINFO_H
+#define KERNEL_ARCHINFO_H 1
 
 #include <stdint.h>
 #include <sys/cdefs.h>

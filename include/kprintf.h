@@ -18,7 +18,7 @@
  */
 
 #ifndef KERNEL_KPRINTF_H
-#define KERNEL_KPRINTF_H
+#define KERNEL_KPRINTF_H 1
 
 #include <stddef.h>
 #include <stdarg.h>

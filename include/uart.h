@@ -19,7 +19,7 @@
  */
 
 #ifndef KERNEL_UART_H
-#define KERNEL_UART_H
+#define KERNEL_UART_H 1
 
 #include <stdint.h>
 #include <sys/cdefs.h>
