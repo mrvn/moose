@@ -19,5 +19,17 @@
  */
 
 #include "pagetable.h"
-#include <stdint.h>
+#include "LeafEntry.h"
 
+__BEGIN_NAMESPACE(Kernel);
+__BEGIN_NAMESPACE(Memory);
+
+constexpr const LeafEntry::Global LeafEntry::GLOBAL;
+constexpr const LeafEntry::Shared LeafEntry::SHARED;
+constexpr const LeafEntry::Cached LeafEntry::CACHED;
+constexpr const LeafEntry::Buffered LeafEntry::BUFFERED;
+constexpr const LeafEntry::Exec LeafEntry::EXEC;
+constexpr const LeafEntry::SmallPage LeafEntry::SMALL_PAGE;
+
+__END_NAMESPACE(Memory);
+__END_NAMESPACE(Kernel);
