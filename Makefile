@@ -89,7 +89,7 @@ ASFLAGS     := $(BASEFLAGS) -D ASSEMBLY
 # Modern C and warn about missing (void) for functions without arguments.
 CFLAGS      := $(BASEFLAGS) -std=gnu99 -Wstrict-prototypes
 # Modern C++ but no exceptions or runtime type informations.
-CXXFLAGS    := $(BASEFLAGS) -std=g++14 -fno-exceptions -fno-rtti
+CXXFLAGS    := $(BASEFLAGS) -std=gnu++11 -fno-exceptions -fno-rtti
 # Don't link in libg, libm or libc (or libgcc but we add that back manually)
 LDFLAGS     := $(BASEFLAGS) -nostdlib
 
