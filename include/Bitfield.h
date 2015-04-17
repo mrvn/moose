@@ -54,7 +54,7 @@
 #include <stdint.h>
 
 struct Raw { };
-static Raw RAW;
+static constexpr const Raw RAW{};
 
 template<typename Base, size_t high, size_t low> class Bits {
 public:
