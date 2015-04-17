@@ -206,6 +206,8 @@ public:
     static constexpr M DEFAULT() {
 	return M();
     };
+protected:
+    constexpr Bitfield(Raw, uint32_t x) : raw_(x) { }
 private:
     uint32_t raw_;
 };
