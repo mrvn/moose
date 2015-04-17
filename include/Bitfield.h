@@ -15,7 +15,36 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* templates to access and manage bitfields
+/* templates to access and manage bit-fields
+ *
+ * example usage:
+ * // header file
+ * class MyBitfield : public Bitfield<ParentClass> {
+ * public:
+ *     using SingleBit = Bit<11>;
+ *     using Multibit  = Bits<31, 12>;
+ *     using SplitBit  = Field<Bit<9>, Bits<5, 4> >;
+ *     static constexpr const SingleBit SINGLE{true};
+ *     static constexpr M FIXED() {
+ *         return M(SINGLE);
+ *     };
+ *     static constexpr M DEFAULT() {
+ *         return M(SplitBit(0b010));
+ *     };
+ * }
+ *
+ * // must be in exactly one cc file in case the address is taken
+ * constexpr const MyBitfield::SingleBit MyBitfield::SINGLE;
+ *
+ * // declaring a value
+ * MyBitField field(MyBitfield::MultiBit(0b10));
+ *
+ * DEFAULT() is used to initialize a new bit-field but can be overridden by
+ * specifying different values in the constructor. 
+ *
+ * FIXED() is used to force values after all the values from the constructor
+ * are applied and can't be overridden. Use this to mask values that must be
+ * written as zero or one.
  */
 
 #ifndef BITFIELD_H
