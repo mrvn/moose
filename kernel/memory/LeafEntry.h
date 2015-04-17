@@ -15,7 +15,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Leaftable entry bitfield
+/* Second level Pagetable entry bitfield
  */
 
 #ifndef KERNEL_MEMORY_LEAFENTRY_H
@@ -59,6 +59,8 @@ public:
     static constexpr const Cached CACHED{true};
     static constexpr const Buffered BUFFERED{true};
     static constexpr const Exec EXEC{false};
+
+    explicit constexpr LeafEntry() : Bitfield(RAW, uint32_t(0)) { }
 
     template<typename ... Ts>
     constexpr LeafEntry(PhysAddr phys, const Ts ... ts)

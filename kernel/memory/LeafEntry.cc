@@ -15,7 +15,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Pagetable handling
+/* Second level Pagetable entry bitfield
  */
 
 #include "pagetable.h"
