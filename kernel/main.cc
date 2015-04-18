@@ -152,15 +152,43 @@ extern "C" EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     // print page table
     const char * addr = (char * const)0;
     for (int i = 0; i < 4096; ++i) {
-	Memory::TableEntry te = Memory::table_entry(addr);
-	kprintf("%p = %#10.8lX\n", addr, te.raw());
+	const Memory::TableEntry te = Memory::table_entry(addr);
+	bool printed = false;
+	const char * addr2 = addr;
+	const char *last_addr = addr;
+	Memory::LeafEntry last = Memory::LeafEntry::FAULT();
+	const char *sep = "  ...\n";
 	for (int j = 0; j < 256; ++j) {
-	    Memory::LeafEntry le = Memory::leaf_entry(addr);
+	    const Memory::LeafEntry le = Memory::leaf_entry(addr2);
 	    if (le != Memory::LeafEntry::FAULT()) {
-		kprintf("  %p = %#10.8lX\n", addr, le.raw());
+		if (!printed) {
+		    kprintf("%p = %#10.8lX\n", addr, te.raw());
+		    printed = true;
+		}
+		if (last.raw() + 4096 == le.raw()) {
+		    kprintf("%s", sep);
+		    sep = "";
+		} else {
+		    if ((last != Memory::LeafEntry::FAULT())  && (sep[0] == 0)){
+			kprintf("  %p = %#10.8lX\n", last_addr, last.raw());
+		    }
+		    kprintf("  %p = %#10.8lX\n", addr2, le.raw());
+		    sep = "  ...\n";
+		}
+		last_addr = addr2;
+		last = le;
+	    } else {
+		if ((last != Memory::LeafEntry::FAULT()) && (sep[0] == 0)) {
+		    kprintf("  %p = %#10.8lX\n", last_addr, last.raw());
+		}
+		last = Memory::LeafEntry::FAULT();
 	    }
-	    addr += 4096;
+	    addr2 += 4096;
 	}
+	if ((last != Memory::LeafEntry::FAULT())  && (sep[0] == 0)){
+	    kprintf("  %p = %#10.8lX\n", last_addr, last.raw());
+	}
+	addr = addr2;
     }
 
 //    exceptions_init();
