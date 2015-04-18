@@ -50,6 +50,7 @@ SECTIONS
         _rodata_kernel_start = .;
 	*(.rodata.kernel)
 	*(.rodata.exec)
+        *(.rodata._*)
 	. = ALIGN(4096);
         _rodata_kernel_end = .;
     }
@@ -57,12 +58,14 @@ SECTIONS
         _data_kernel_start = .;
         *(.data.kernel)
         *(.data.exec)
+        *(.data._*)
         _data_kernel_end = .;
     }
     .bss.kernel : AT(ADDR(.bss.kernel) - PHYS_TO_VIRT) {
         _bss_kernel_start = .;
         *(.bss.kernel)
         *(.bss.exec)
+        *(.bss._*)
 	. = ALIGN(4096);
         _bss_kernel_end = .;
     }
