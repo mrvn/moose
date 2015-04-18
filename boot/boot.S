@@ -166,17 +166,6 @@ map_atags:
 	ldr	r7, =0xD57
 	bl	map_range
 
-map_peripherals:
-	// map peripherals
-	ldr	r4, =0x3F000000		// absolute (physical) peripherals start
-	mov	r5, r4			// phys = virt
-	ldr	r6, =0x40000000		// absolute (physical) peripherals end
-        // Shareable Device
-	// accessed, kernel read-write, not exec, global
-        // 0b0100 0001 0111
-	ldr	r7, =0x417
-	bl	map_range
-
 	// map fixed address structures
 	//=============================
 map_pagetable:

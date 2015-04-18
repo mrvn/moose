@@ -143,11 +143,13 @@ void arch_info_init(const Atag *atag) {
         atag = next(atag);
     }
 
-    // map GPIO and UART peripherals at fixed locations
+    // map GPIO, UART and system TIMER peripherals at fixed locations
     Memory::map(Memory::PhysAddr(peripheral_base + 0x00200000),
 		(const void * const)KERNEL_GPIO, Memory::KERNEL_PERIPHERAL);
     Memory::map(Memory::PhysAddr(peripheral_base + 0x00201000),
 		(const void * const)KERNEL_UART, Memory::KERNEL_PERIPHERAL);
+    Memory::map(Memory::PhysAddr(peripheral_base + 0x00003000),
+		(const void * const)KERNEL_TIMER, Memory::KERNEL_PERIPHERAL);
     
     kprintf("\nDetected '%s'\n", model_name);
     kprintf("Memory      : %#8.8lx\n", mem_total);

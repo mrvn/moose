@@ -19,8 +19,8 @@
  */
 
 #include "timer.h"
-#include "arch_info.h"
 #include "kprintf.h"
+#include "../kernel/fixed_addresses.h"
 //#include "exceptions/irq.h"
 
 enum {
@@ -37,7 +37,9 @@ enum TIMER_Reg {
     TIMER_C3  = 0x18, // 0x??003018 System Timer Compare 3
 };
 
-PERIPHERAL_BASE(TIMER)
+static volatile uint32_t * TIMER_reg(enum TIMER_Reg reg) {
+    return (volatile uint32_t *)(KERNEL_TIMER + reg);
+}
 
 static uint32_t status(void) {
     volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);

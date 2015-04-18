@@ -4,7 +4,7 @@ FLAGS _tmp-y.o += -D__KERNEL__
 SRC y start.S
 DIR y memory
 SRC y arch_info.cc
-SRC y /uart.c
+SRC y uart.c
 SRC y /kprintf.c
 SRC y timer.c
 SRC y main.cc

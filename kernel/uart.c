@@ -19,7 +19,7 @@
  */
 
 #include "uart.h"
-#include "arch_info.h"
+#include "../kernel/fixed_addresses.h"
 
 enum {
     UART0_BASE = 0x201000, // 0x??201000
@@ -30,7 +30,9 @@ enum UART0_Reg {
     UART0_FR = 0x18, // 0x??201018 flag register
 };
 
-PERIPHERAL_BASE(UART0)
+static volatile uint32_t * UART0_reg(enum UART0_Reg reg) {
+    return (volatile uint32_t *)(KERNEL_UART + reg);
+}
 
 enum {
     FR_TXFF = 1 << 5, // Transmit FIFO full
