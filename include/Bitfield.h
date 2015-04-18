@@ -207,7 +207,8 @@ public:
 	return M();
     };
 protected:
-    constexpr Bitfield(Raw, uint32_t x) : raw_(x) { }
+    template<typename T>
+    constexpr Bitfield(Raw, T x) : raw_(x) { }
 private:
     uint32_t raw_;
 };

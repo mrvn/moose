@@ -45,22 +45,26 @@ public:
     */
     using Addr      = Bits<31, 10>;
 
-    explicit constexpr TableEntry() : Bitfield(RAW, uint32_t(0)) { }
+    explicit constexpr TableEntry() : Bitfield(RAW, 0) { }
 
     template<typename ... Ts>
     constexpr TableEntry(PhysAddr phys, const Ts ... ts)
         : Bitfield(Addr(phys.x >> 12), ts ...) { }
+
     static constexpr M FIXED() {
 	return M(!ECC, SBZ, COARSE);
     };
+
     static constexpr M DEFAULT() {
 	return M(Domain(0));
     };
+
     static const TableEntry FAULT() { return TableEntry(); }
 
     bool operator == (const TableEntry other) const {
 	return raw() == other.raw();
     }
+
     bool operator != (const TableEntry other) const {
 	return raw() != other.raw();
     }

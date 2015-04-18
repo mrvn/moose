@@ -60,14 +60,16 @@ public:
     static constexpr const Buffered BUFFERED{true};
     static constexpr const Exec EXEC{false};
 
-    explicit constexpr LeafEntry() : Bitfield(RAW, uint32_t(0)) { }
+    explicit constexpr LeafEntry() : Bitfield(RAW, 0) { }
 
     template<typename ... Ts>
     constexpr LeafEntry(PhysAddr phys, const Ts ... ts)
         : Bitfield(Addr(phys.x >> 12), ts ...) { }
+
     static constexpr M FIXED() {
 	return M(SMALL_PAGE);
     };
+
     static constexpr M DEFAULT() {
 	return M(!GLOBAL, !EXEC);
     };
