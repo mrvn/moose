@@ -55,15 +55,15 @@ void delay(uint32_t count) {
 //    uint32_t a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0;
     while(count--) {
 // branch icache dcache cycles/loop
-// no     no     no     ~507
-// no     no     yes      43.005
-// no     yes    no        1.005
-// no     yes    yes       1.005
-// yes    no     no     ~507
-// yes    no     yes      43.005
-// yes    yes    no        1.005
-// yes    yes    yes       1.005
- asm ("");
+// no     no     no     ~507     (47.602 RPi)  252
+// no     no     yes      43.005                24.000
+// no     yes    no        1.005                 1.500
+// no     yes    yes       1.005                 1.500
+// yes    no     no     ~507                   252
+// yes    no     yes      43.005                24.000
+// yes    yes    no        1.005                 1.500
+// yes    yes    yes       1.005 (44.802 RPi)    1.500
+asm volatile ("");
 
 // branch icache dcache cycles/loop
 // no     no     no     ~750
@@ -86,22 +86,22 @@ void delay(uint32_t count) {
 // asm ("nop");
 
 // branch icache dcache cycles/loop
-// no     no     no     ~505
-// no     no     yes      43.500
-// no     yes    no        1.500
-// no     yes    yes       1.500
-// yes    no     no     ~505
-// yes    no     yes      43.500
-// yes    yes    no        1.500
-// yes    yes    yes       1.500
-// asm ("orr %0, %0, %0" : "=r" (a) : "r" (a));
-// asm ("add %0, %0, %0" : "=r" (b) : "r" (b));
-// asm ("and %0, %0, %0" : "=r" (c) : "r" (c));
-// asm ("mov %0, %0" : "=r" (d) : "r" (d));
-// asm ("orr %0, %0, %0" : "=r" (e) : "r" (e));
-// asm ("add %0, %0, %0" : "=r" (f) : "r" (f));
-// asm ("and %0, %0, %0" : "=r" (g) : "r" (g));
-// asm ("mov %0, %0" : "=r" (h) : "r" (h));
+// no     no     no     ~505     (98.005 RPi)
+// no     no     yes      46.500 (98.005 RPi)
+// no     yes    no       10.500 (98.005 RPi)
+// no     yes    yes      10.500 (98.005 RPi)
+// yes    no     no     ~505     (91.289 RPi)
+// yes    no     yes      46.500 (91.289 RPi)
+// yes    yes    no       10.500 (91.289 RPi)
+// yes    yes    yes      10.500 (91.117 RPi)
+// asm volatile ("orr %0, %0, %0" : "=r" (a) : "r" (a));
+// asm volatile ("add %0, %0, %0" : "=r" (b) : "r" (b));
+// asm volatile ("and %0, %0, %0" : "=r" (c) : "r" (c));
+// asm volatile ("mov %0, %0" : "=r" (d) : "r" (d));
+// asm volatile ("orr %0, %0, %0" : "=r" (e) : "r" (e));
+// asm volatile ("add %0, %0, %0" : "=r" (f) : "r" (f));
+// asm volatile ("and %0, %0, %0" : "=r" (g) : "r" (g));
+// asm volatile ("mov %0, %0" : "=r" (h) : "r" (h));
 
 // branch icache dcache cycles/loop
 // no     no     no     ~1010
