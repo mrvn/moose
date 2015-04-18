@@ -57,10 +57,10 @@ fi
 
 printf "%s_tmp-y.lto: override LD_TXT = \n" "${DIR}" >>"$DST".tmp
 printf "%s_tmp-y.lto: override LOCAL_LD = \$(LD)\n" "$DIR" >>"$DST".tmp
-printf "%s_tmp-y.lto: _empty.lto\n" "$DIR" >>"$DST".tmp
+printf "%s_tmp-y.lto: _empty.c.lto\n" "$DIR" >>"$DST".tmp
 printf "%s_tmp-y.o: override LD_TXT = \n" "$DIR" >>"$DST".tmp
 printf "%s_tmp-y.o: override LOCAL_LD = \$(LD)\n" "$DIR" >>"$DST".tmp
-printf "%s_tmp-y.o: _empty.o\n" "$DIR" >>"$DST".tmp
+printf "%s_tmp-y.o: _empty.c.o\n" "$DIR" >>"$DST".tmp
 
 TGT="lto"
 while read TYPE ARG REST; do

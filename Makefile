@@ -46,7 +46,7 @@ ARCHFLAGS := -mcpu=arm1176jzf-s -mfloat-abi=soft
 
 # optimization is needed for many warnings, the code is also
 # unspeakably horribly without, also compile with debug symbols
-BASEFLAFS := -O2 -g
+BASEFLAGS := -O2 -g
 
 # assert that compilation targets a freestanding environment
 BASEFLAGS += -ffreestanding
@@ -77,7 +77,7 @@ BASEFLAGS   += -Winvalid-pch -Wmissing-format-attribute
 BASEFLAGS   += -Wmissing-include-dirs
 BASEFLAGS   += -Wredundant-decls -Wshadow
 BASEFLAGS   += -Wswitch -Wsystem-headers
-BASEFLAGS   += -Wno-pragmas
+BASEFLAGS   += -Wno-pragmas -Wno-unused-function
 BASEFLAGS   += -Wwrite-strings -Wdisabled-optimization -Wpointer-arith
 
 # Fail on warnings except for unused variable or parameter
@@ -97,7 +97,8 @@ LDFLAGS     := $(BASEFLAGS) -nostdlib
 
 # Needed for partial LTO
 export COLLECT_GCC := $(CC)
-export COLLECT_GCC_OPTIONS := $(BASEFLAGS)
+export COLLECT_LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
+export COLLECT_GCC_OPTIONS := $(patsubst %,'%',$(BASEFLAGS) -flto=jobserver)
 LTO_PLUGIN  := $(shell $(CC) --print-file-name liblto_plugin.so)
 LTO_WRAPPER := $(shell $(CC) --print-prog-name lto-wrapper)
 LD_NO_LTO  = $(CROSS)ld -plugin $(LTO_PLUGIN) -plugin-opt=$(LTO_WRAPPER)
@@ -158,14 +159,8 @@ all: kernel.img
 _empty.c:
 	$(L) CREATE $@
 	$(Q) touch $@
-
-_empty.o: _empty.c
-	$(L) CC $@
-	$(Q) $(CC) -c -o $@ $<
-
-_empty.lto: _empty.c
-	$(L) CC $@
-	$(Q) $(CC) $(LTO) -c -o $@ $<
+_empty.c.o: _empty.c
+_empty.c.lto: _empty.c
 
 # merge all object files and _tmp-y.lto of subdirectories into _tmp-y.lto
 # empty if DOLTO or LDSCRIPT is specified for that directory
