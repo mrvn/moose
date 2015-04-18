@@ -26,11 +26,24 @@
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(Memory);
 
+struct PhysAddr;
 class TableEntry;
 class LeafEntry;
 
-const TableEntry table_entry(const void * const virt);
-const LeafEntry leaf_entry(const void * const virt);
+const TableEntry & table_entry(const void * const virt);
+const LeafEntry & leaf_entry(const void * const virt);
+
+enum Mode {
+    KERNEL_READ,
+    KERNEL_WRITE,
+    USER_READ,
+    USER_WRITE,
+    FRAMEBUFFER,
+    PERIPHERAL,
+    KERNEL_PERIPHERAL,
+};
+
+void map(PhysAddr phys, const void * const virt, Mode mode);
 
 __END_NAMESPACE(Memory);
 __END_NAMESPACE(Kernel);

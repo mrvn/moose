@@ -73,7 +73,11 @@ public:
     static constexpr M DEFAULT() {
 	return M(!GLOBAL, !EXEC);
     };
-    static const LeafEntry FAULT() { return LeafEntry(); }
+
+    static const LeafEntry & FAULT() {
+	static LeafEntry entry;
+	return entry;
+    }
 
     bool operator == (const LeafEntry other) const {
 	return raw() == other.raw();

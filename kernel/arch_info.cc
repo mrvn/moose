@@ -22,6 +22,11 @@
 
 #include "arch_info.h"
 #include "kprintf.h"
+#include "memory/pagetable.h"
+#include "memory/PhysAddr.h"
+#include "fixed_addresses.h"
+
+__BEGIN_NAMESPACE(Kernel);
 
 enum Model model;
 const char *model_name;
@@ -137,9 +142,17 @@ void arch_info_init(const Atag *atag) {
         }
         atag = next(atag);
     }
+
+    // map GPIO and UART peripherals at fixed locations
+    Memory::map(Memory::PhysAddr(peripheral_base + 0x00200000),
+		(const void * const)KERNEL_GPIO, Memory::KERNEL_PERIPHERAL);
+    Memory::map(Memory::PhysAddr(peripheral_base + 0x00201000),
+		(const void * const)KERNEL_UART, Memory::KERNEL_PERIPHERAL);
+    
     kprintf("\nDetected '%s'\n", model_name);
     kprintf("Memory      : %#8.8lx\n", mem_total);
     kprintf("Initrd start: %#8.8lx\n", initrd_start);
     kprintf("Initrd size : %#8.8lx\n", initrd_size);
     kprintf("Commandline : '%s'\n", cmdline);
 }
+__END_NAMESPACE(Kernel);

@@ -24,7 +24,8 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 
-__BEGIN_DECLS
+__BEGIN_NAMESPACE(Kernel);
+__BEGIN_DECLS;
 enum Model {
     RASPBERRY_PI,
     RASPBERRY_PI_B_PLUS,
@@ -55,6 +56,7 @@ __CONCAT(NAME, _reg)(enum __CONCAT(NAME, _Reg) reg) {			\
 typedef struct Atag Atag;
 
 void arch_info_init(const Atag *atag);
-__END_DECLS
+__END_DECLS;
+__END_NAMESPACE(Kernel);
 
 #endif // ##ifndef KERNEL_ARCHINFO_H
