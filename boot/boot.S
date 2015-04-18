@@ -28,7 +28,7 @@
  * the system ID in r1 and the atags in r2.
  */
 
-#define VIRT_TO_PHYS 0x80000000
+#include "../kernel/fixed_addresses.h"
 
 .section ".text"
 .global _start
@@ -61,7 +61,10 @@ _start:
 	// r11 = offset for physical address of virtual symbols
 	add	r11, r12, #VIRT_TO_PHYS
 	
-	// construct kernel page table
+	// construct kernel page table and map everything
+	// ==============================================
+
+	// initilize L1 table with leaf tables
 construct_kernel_page_table:
 	ld_phys	r3, kernel_page_table
 	ld_phys	r4, kernel_leaf_tables
@@ -141,12 +144,11 @@ map_kernel_data_bss:
 	ldr	r7, =0x557
 	bl	map_range
 
-map_page_tables:
-	// map page tables
-	ld_phys	r4, kernel_page_table	// PC relative kernel page tables
+map_boot_info:
+	// map boot info
+	ld_phys	r4, boot_info		// PC relative boot info
 	mov	r5, r4			// phys = virt
-	ld_phys	r6, boot_info		// PC relative boot info
-	add	r6, r6, #4096		// page after boot info
+	add	r6, r5, #4096		// page after boot info
         // outer and inner write back, write allocate, shareable,
 	// accessed, kernel read-write, not exec, not global
         // 0b1101 0101 0111
@@ -175,6 +177,32 @@ map_peripherals:
 	ldr	r7, =0x417
 	bl	map_range
 
+	// map fixed address structures
+	//=============================
+map_pagetable:
+	// map page table
+	ldr	r4, =KERNEL_PAGETABLE   // absolute (virtual)
+	ld_phys	r5, kernel_page_table	// PC relative kernel page table
+	add	r6, r5, #16384		// size = 16k
+        // outer and inner write back, write allocate, shareable,
+	// accessed, kernel read-write, not exec, not global
+        // 0b1101 0101 0111
+	ldr	r7, =0xD57
+	bl	map_range
+
+map_leaftables:
+	// map leaf tables
+	ldr	r4, =KERNEL_LEAFTABLES  // absolute (virtual)
+	ld_phys	r5, kernel_leaf_tables	// PC relative kernel leaf tables
+	add	r6, r5, #4096 * 1024	// size = 4M
+        // outer and inner write back, write allocate, shareable,
+	// accessed, kernel read-write, not exec, not global
+        // 0b1101 0101 0111
+	ldr	r7, =0xD57
+	bl	map_range
+
+	// tell the kernel where stuff is
+	// ==============================
 fill_boot_info:
 	// fill out boot info
 	ld_phys	r0, boot_info
@@ -183,6 +211,8 @@ fill_boot_info:
 	ld_phys	r3, kernel_leaf_tables
 	str	r3, [r0, #4]
 
+	// lets go virtual
+	// ===============
 enable_mmu:
         // set SMP bit in ACTLR
         mrc	p15, 0, r3, c1, c0, 1

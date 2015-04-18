@@ -22,12 +22,15 @@
 #define KERNEL_MEMORY_PAGETABLE_H 1
 
 #include <sys/cdefs.h>
-#include "LeafEntry.h"
 
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(Memory);
 
-EXPORT extern LeafEntry entry;
+class TableEntry;
+class LeafEntry;
+
+const TableEntry table_entry(const void * const virt);
+const LeafEntry leaf_entry(const void * const virt);
 
 __END_NAMESPACE(Memory);
 __END_NAMESPACE(Kernel);

@@ -56,6 +56,14 @@ public:
     static constexpr M DEFAULT() {
 	return M(Domain(0));
     };
+    static const TableEntry FAULT() { return TableEntry(); }
+
+    bool operator == (const TableEntry other) const {
+	return raw() == other.raw();
+    }
+    bool operator != (const TableEntry other) const {
+	return raw() != other.raw();
+    }
 private:
     using Ecc       = Bit<9>;
     using Domain    = Bits<8, 5>;

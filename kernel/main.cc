@@ -25,8 +25,13 @@
 #include "kprintf.h"
 //#include "exceptions/exceptions.h"
 #include "timer.h"
+#include "memory/pagetable.h"
+#include "memory/LeafEntry.h"
+#include "memory/TableEntry.h"
 
 #define UNUSED(x) (void)(x)
+
+__BEGIN_NAMESPACE(Kernel);
 
 typedef struct {
     uint32_t *kernel_page_table_phys;
@@ -131,34 +136,33 @@ void delay(uint32_t count) {
     }
 }
 
-
 // main C function, called from boot.S
-EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
+extern "C" EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     UNUSED(r0); // always 0
     UNUSED(id); // 0xC42 for Raspberry Pi
 
     arch_info_init(atag);
     kprintf("r0 = %#10.8lx\n", r0);
-/*
+
     // print boot info
     BootInfo *boot_info = (BootInfo *)r0;
     kprintf("kernel_page_table_phys = %p\n", boot_info->kernel_page_table_phys);
     kprintf("kernel_leaf_table_phys = %p\n", boot_info->kernel_leaf_table_phys);
-
+    
     // print page table
-    uint32_t addr = 0;
-    uint32_t *l1 = boot_info->kernel_page_table_phys;
+    const char * addr = (char * const)0;
     for (int i = 0; i < 4096; ++i) {
-	kprintf("%#10.8lx @ %p = %#10.8lx\n", addr, l1, *l1);
-	uint32_t *l2 = (uint32_t *)((uintptr_t)*l1 & ~0x3FF);
+	Memory::TableEntry te = Memory::table_entry(addr);
+	kprintf("%p = %#10.8lX\n", addr, te.raw());
 	for (int j = 0; j < 256; ++j) {
-	    if (*l2 != 0) kprintf("  %#10.8lx @ %p = %#10.8lx\n", addr, l2, *l2);
+	    Memory::LeafEntry le = Memory::leaf_entry(addr);
+	    if (le != Memory::LeafEntry::FAULT()) {
+		kprintf("  %p = %#10.8lX\n", addr, le.raw());
+	    }
 	    addr += 4096;
-	    ++l2;
 	}
-	++l1;
     }
-*/  
+
 //    exceptions_init();
 
 //    timer_test();
@@ -178,3 +182,5 @@ EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
 
     kprintf("\nGoodbye\n");
 }
+
+__END_NAMESPACE(Kernel);

@@ -55,7 +55,7 @@
    future changes and we include the ISO C99 code in the non-standard
    namespace __c99.  The C++ wrapper header take case of adding the
    definitions to the global namespace.  */
-#if defined __cplusplus && defined _GLIBCPP_USE_NAMESPACES
+#if defined __cplusplus
 # define __BEGIN_NAMESPACE_STD	namespace std {
 # define __END_NAMESPACE_STD	}
 # define __USING_NAMESPACE_STD(name) using std::name;

@@ -71,6 +71,14 @@ public:
     static constexpr M DEFAULT() {
 	return M(!GLOBAL, !EXEC);
     };
+    static const LeafEntry FAULT() { return LeafEntry(); }
+
+    bool operator == (const LeafEntry other) const {
+	return raw() == other.raw();
+    }
+    bool operator != (const LeafEntry other) const {
+	return raw() != other.raw();
+    }
 private:
     using SmallPage = Bit<1>;
     static constexpr const SmallPage SMALL_PAGE{true};

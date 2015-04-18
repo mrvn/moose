@@ -7,4 +7,4 @@ SRC y /arch_info.c
 SRC y /uart.c
 SRC y /kprintf.c
 SRC y timer.c
-SRC y main.c
+SRC y main.cc

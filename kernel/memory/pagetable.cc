@@ -19,12 +19,38 @@
  */
 
 #include "pagetable.h"
+#include <stdint.h>
+#include "../fixed_addresses.h"
+#include "TableEntry.h"
 #include "LeafEntry.h"
 
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(Memory);
 
-LeafEntry entry(PhysAddr(0x3F000000), LeafEntry::GLOBAL);
+struct KernelPageTable {
+    TableEntry entry[4096];
+} __attribute__((aligned(16384)));
+
+struct KernelLeafTables {
+    LeafEntry entry[1024 * 4096];
+} __attribute__((aligned(4096)));
+
+static constexpr const KernelPageTable *kernel_pagetable =
+    (const KernelPageTable *)KERNEL_PAGETABLE;
+
+static constexpr const KernelLeafTables *kernel_leaftables =
+    (const KernelLeafTables *)KERNEL_LEAFTABLES;
+
+const TableEntry table_entry(const void * const virt) {
+    return kernel_pagetable->entry[uintptr_t(virt) >> 20];
+}
+
+const LeafEntry leaf_entry(const void * const virt) {
+    if (table_entry(virt) == TableEntry::FAULT()) {
+	return LeafEntry::FAULT();
+    }
+    return kernel_leaftables->entry[uintptr_t(virt) >> 12];
+}
 
 __END_NAMESPACE(Memory);
 __END_NAMESPACE(Kernel);
