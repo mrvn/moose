@@ -21,7 +21,7 @@
 #include "timer.h"
 #include "kprintf.h"
 #include "../kernel/fixed_addresses.h"
-//#include "exceptions/irq.h"
+#include "irq.h"
 
 enum {
     TIMER_BASE = 0x003000, // 0x??003000
@@ -77,7 +77,7 @@ static void set_cmp(uint32_t num, uint32_t t) {
     volatile uint32_t *cmp = TIMER_reg(reg);
     *cmp = t;
 }
-/*
+
 void timer_test(void) {
     kprintf("timer CS    = %#lx\n", status());
     kprintf("timer count = %#18llx\n", count());
@@ -101,7 +101,7 @@ void timer_test(void) {
     }
 }
 
-EXPORT void handle_timer1(void) {
+void handle_timer1(void) {
     uint64_t t = count();
     kprintf("timer CS    = %lu\n", status());
     kprintf("timer count = %#18llx\n", t);
@@ -127,4 +127,4 @@ EXPORT void handle_timer1(void) {
     // trigger one the next second mark
     set_cmp(1, next);
 }
-*/
+

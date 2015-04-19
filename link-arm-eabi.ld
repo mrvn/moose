@@ -51,6 +51,12 @@ SECTIONS
 	*(.rodata.kernel)
 	*(.rodata.exec)
         *(.rodata._*)
+    }
+    .init_array ALIGN(4) : {
+        _init_array_start = .;
+        *(SORT_BY_INIT_PRIORITY(.init_array))
+        *(SORT_BY_INIT_PRIORITY(.init_array.*))
+        _init_array_end = .;
 	. = ALIGN(4096);
         _rodata_kernel_end = .;
     }

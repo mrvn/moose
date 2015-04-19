@@ -61,6 +61,7 @@ __BEGIN_DECLS
 #define KERNEL_TIMER           0xD0004000 /* 4k system TIMER registers */
 #define KERNEL_CORE_MAIL       0xD0006000 /* 4k core mail boxes */
 #define KERNEL_VC_MAIL         0xD0008000 /* 4k VC mail boxes */
+#define KERNEL_IRQ             0xD000A000 /* 4k IRQ registers */
 #define KERNEL_PAGETABLE       0xD0200000 /* 16k (first 8k unused) */
 #define KERNEL_LEAFTABLES      0xD0400000 /* 4M (first 2M unmapped) */
 #define PER_PAGE_INFO          0xE0000000 /* 4M (size ram / 1024) */

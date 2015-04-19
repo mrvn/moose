@@ -40,6 +40,10 @@ kernel_start:
 	strltb	r0, [r3, #1]!	// if not store 0 byte and advance r3
 	blt	1b		// if not repeat
 
+        // call constructors
+        ldr     r3, =kernel_constructors
+        blx     r3
+
 	// jump to kernel_main
 	ldr	r3, =kernel_main
 	blx	r3
@@ -54,6 +58,13 @@ halt:
 // constants for ldr macro
 constants:
 .ltorg
+
+.section ".data"
+.balign 4
+.global atags
+.type atags, STT_OBJECT
+atags:
+	.word	0
 
 .section ".bss"
 // 16k stack aligned to 8 byte

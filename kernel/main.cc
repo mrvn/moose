@@ -33,6 +33,22 @@
 
 __BEGIN_NAMESPACE(Kernel);
 
+void ARCH_INFO_init(void);
+
+extern "C" {
+ // constructors
+    typedef void (*constructor_t)(void);
+    extern constructor_t _init_array_start[];
+    extern constructor_t _init_array_end[];
+
+    EXPORT void kernel_constructors(void) {
+	for(constructor_t *fn = _init_array_start;
+	    fn != _init_array_end; ++fn) {
+	    (*fn)();
+	}
+    }
+};
+
 typedef struct {
     uint32_t *kernel_page_table_phys;
     uint32_t *kernel_leaf_table_phys;
@@ -140,8 +156,8 @@ asm volatile ("");
 extern "C" EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
     UNUSED(r0); // always 0
     UNUSED(id); // 0xC42 for Raspberry Pi
-
-    arch_info_init(atag);
+    UNUSED(atag);
+    
     kprintf("r0 = %#10.8lx\n", r0);
 
     // print boot info
@@ -191,9 +207,7 @@ extern "C" EXPORT void kernel_main(uint32_t r0, uint32_t id, const Atag *atag) {
 	addr = addr2;
     }
 
-//    exceptions_init();
-
-//    timer_test();
+    timer_test();
 
     enum {
 	CYCLES_PER_TICK = 900,

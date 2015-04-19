@@ -87,6 +87,10 @@ SECTIONS
         *(.rodata)
         *(.rodata.*)
     }
+    .init_array$ARG : {
+        *(SORT_BY_INIT_PRIORITY(.init_array))
+        *(SORT_BY_INIT_PRIORITY(.init_array.*))
+    }
     .data$ARG : {
         *(.data)
         *(.data.*)

@@ -15,19 +15,40 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* System Timer
+/* Exceptions related functions
  */
 
-#ifndef KERNEL_TIMER_H
-#define KERNEL_TIMER_H 1
+#ifndef KERNEL_EXCEPTIONS_H
+#define KERNEL_EXCEPTIONS_H 1
 
 #include <stdint.h>
 #include <sys/cdefs.h>
 
-__BEGIN_DECLS
-EXPORT void timer_test(void);
-EXPORT uint64_t count(void);
-void handle_timer1(void);
-__END_DECLS
+__BEGIN_DECLS;
+typedef struct Regs {
+    uint32_t r0;
+    uint32_t r1;
+    uint32_t r2;
+    uint32_t r3;
+    uint32_t r4;
+    uint32_t r5;
+    uint32_t r6;
+    uint32_t r7;
+    uint32_t r8;
+    uint32_t r9;
+    uint32_t r10;
+    uint32_t r11;
+    uint32_t r12;
+    uint32_t lr_svc; // lr from SVC mode
+    uint32_t sp_usr;
+    uint32_t lr_usr;
+    uint32_t lr; // lr from the mode of the exception
+    uint32_t spsr;
+} Regs;
 
-#endif // ##ifndef KERNEL_TIMER_H
+__BEGIN_NAMESPACE(Kernel);
+void dump_regs(const Regs *regs);
+__END_NAMESPACE(Kernel);
+__END_DECLS;
+
+#endif // ##ifndef KERNEL_EXCEPTIONS_H

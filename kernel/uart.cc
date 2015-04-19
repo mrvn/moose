@@ -19,7 +19,8 @@
  */
 
 #include "uart.h"
-#include "../kernel/fixed_addresses.h"
+#include "fixed_addresses.h"
+#include "init_priorities.h"
 
 enum {
     UART0_BASE = 0x201000, // 0x??201000
@@ -57,3 +58,6 @@ void puts(const char *str) {
     // putc until 0 byte
     while (*str) putc(*str++);
 }
+
+CONSTRUCTOR(UART) {
+} CONSTRUCTOR_END

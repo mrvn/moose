@@ -45,17 +45,10 @@ enum {
     NO_LED = ~0U, // pin value when LED does not exist
 };
 
-// create pointer to specified periphery register
-#define PERIPHERAL_BASE(NAME)						\
-static volatile uint32_t *						\
-__CONCAT(NAME, _reg)(enum __CONCAT(NAME, _Reg) reg) {			\
-    return (volatile uint32_t *)(peripheral_base			\
-                                 + __CONCAT(NAME, _BASE) + reg);	\
-}
-
 typedef struct Atag Atag;
 
-void arch_info_init(const Atag *atag);
+EXPORT extern Atag *atags; // in start.S
+
 __END_DECLS;
 __END_NAMESPACE(Kernel);
 

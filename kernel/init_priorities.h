@@ -15,19 +15,25 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* System Timer
+/*
+ * init priorities
  */
 
-#ifndef KERNEL_TIMER_H
-#define KERNEL_TIMER_H 1
+#ifndef KERNEL_INIT_PRIORITIES_H
+#define KERNEL_INIT_PRIORITIES_H 1
 
-#include <stdint.h>
-#include <sys/cdefs.h>
+enum INIT_PRIORITIES {
+    INIT_ARCH_INFO  = 1000,
+    INIT_UART,
+    INIT_ARCH_INFO_POST,
+    INIT_EXCEPTIONS,
+};
 
-__BEGIN_DECLS
-EXPORT void timer_test(void);
-EXPORT uint64_t count(void);
-void handle_timer1(void);
-__END_DECLS
+#define CONSTRUCTOR(name)						\
+    void __attribute__((constructor(__CONCAT(INIT_,name))))		\
+    __CONCAT(name,_init)(void) {					\
+    do
 
-#endif // ##ifndef KERNEL_TIMER_H
+#define CONSTRUCTOR_END while(0); }
+
+#endif // ##ifndef KERNEL_INIT_PRIORITIES_H

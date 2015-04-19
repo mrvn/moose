@@ -18,18 +18,19 @@
 /* Information about the different Raspberry Pi models
  */
 
-#include <stddef.h>
-
 #include "arch_info.h"
+#include <stddef.h>
 #include "kprintf.h"
 #include "memory/pagetable.h"
 #include "memory/PhysAddr.h"
 #include "fixed_addresses.h"
+#include "init_priorities.h"
 
 __BEGIN_NAMESPACE(Kernel);
 
 enum Model model;
 const char *model_name;
+const char *cmdline;
 uint32_t mem_total;
 uint32_t initrd_start;
 uint32_t initrd_size;
@@ -96,8 +97,8 @@ const Atag * next(const Atag *atag) {
     return (const Atag *)(((uint32_t *)atag) + atag->tag_size);
 }
 
-void arch_info_init(const Atag *atag) {
-    const char *cmdline = "";
+CONSTRUCTOR(ARCH_INFO) {
+    const Atag *atag = (Atag *)atags;
     while (atag) {
         switch (atag->tag) {
         case MEM: {
@@ -143,18 +144,28 @@ void arch_info_init(const Atag *atag) {
         atag = next(atag);
     }
 
-    // map GPIO, UART and system TIMER peripherals at fixed locations
+    // map GPIO, UART, IRQ and system TIMER peripherals at fixed locations
     Memory::map(Memory::PhysAddr(peripheral_base + 0x00200000),
 		(const void * const)KERNEL_GPIO, Memory::KERNEL_PERIPHERAL);
     Memory::map(Memory::PhysAddr(peripheral_base + 0x00201000),
 		(const void * const)KERNEL_UART, Memory::KERNEL_PERIPHERAL);
+    Memory::map(Memory::PhysAddr(peripheral_base + 0x0000B000),
+		(const void * const)KERNEL_IRQ, Memory::KERNEL_PERIPHERAL);
     Memory::map(Memory::PhysAddr(peripheral_base + 0x00003000),
 		(const void * const)KERNEL_TIMER, Memory::KERNEL_PERIPHERAL);
-    
     kprintf("\nDetected '%s'\n", model_name);
     kprintf("Memory      : %#8.8lx\n", mem_total);
     kprintf("Initrd start: %#8.8lx\n", initrd_start);
     kprintf("Initrd size : %#8.8lx\n", initrd_size);
     kprintf("Commandline : '%s'\n", cmdline);
-}
+} CONSTRUCTOR_END
+
+CONSTRUCTOR(ARCH_INFO_POST) {
+    kprintf("\nDetected '%s'\n", model_name);
+    kprintf("Memory      : %#8.8lx\n", mem_total);
+    kprintf("Initrd start: %#8.8lx\n", initrd_start);
+    kprintf("Initrd size : %#8.8lx\n", initrd_size);
+    kprintf("Commandline : '%s'\n", cmdline);
+} CONSTRUCTOR_END
+
 __END_NAMESPACE(Kernel);

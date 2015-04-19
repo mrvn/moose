@@ -166,6 +166,10 @@ map_atags:
 	ldr	r7, =0xD57
 	bl	map_range
 
+	// save atags address
+	ld_virt	r4, atags
+	str	r2, [r4, #0]
+
 	// map fixed address structures
 	//=============================
 map_pagetable:
