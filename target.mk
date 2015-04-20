@@ -18,6 +18,10 @@ Makefile : ;
 
 % :: $(OBJDIR) ; :
 
-.PHONY: clean
+.PHONY: clean distclean
+
 clean:
 	rm -rf $(OBJDIR)
+
+distclean: clean
+	find -name "*~" -delete
