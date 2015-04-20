@@ -22,17 +22,11 @@
 #include "arch_info.h"
 #include "kprintf.h"
 #include "exceptions.h"
+#include "peripherals.h"
 #include "timer.h"
-#include "fixed_addresses.h"
-
-#include <sys/cdefs.h>
 
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(IRQ);
-
-enum {
-    IRQ_BASE   = 0x00B000, // 0x??00B000
-};
 
 enum IRQ_Reg {
     IRQ_BASIC_PENDING = 0x200, // 0x??00B200
@@ -52,14 +46,18 @@ static volatile uint32_t * IRQ_reg(enum IRQ_Reg reg) {
 }
 
 void handler_irq(Regs *regs, uint32_t num) {
+    PERIPHERAL_ENTER(lock, NULL, IRQ_BASE);
+
     (void)num;
     volatile uint32_t *pending1 = IRQ_reg(IRQ_PENDING1);
     if ((*pending1 & (1U << 1)) != 0) {
-	handle_timer1();
+	Timer::handle_timer1(&lock);
     } else {
 	kprintf("%s: Regs @ %p\n", "IRQ", regs);
 	dump_regs(regs);
     }
+
+    PERIPHERAL_LEAVE(lock);
 }
 
 void handler_fiq(Regs *regs, uint32_t num) {
@@ -68,7 +66,7 @@ void handler_fiq(Regs *regs, uint32_t num) {
     dump_regs(regs);
 }
 
-uint32_t cpsr_read(void) {
+uint32_t cpsr_read() {
     uint32_t t;
     asm volatile ("mrs %[t], CPSR" : [t] "=r" (t));
     return t;
@@ -95,20 +93,29 @@ void disable_irqs(void) {
     cpsr_write_c(cpsr);
 }
 
-void enable_irq(enum IRQ irq) {
+void enable_irq(PeripheralLock *prev, enum IRQ irq) {
+    PERIPHERAL_ENTER(lock, prev, IRQ_BASE);
+
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_ENABLE1
 	           : ((irq < 64) ? IRQ_ENABLE2 : IRQ_ENABLE_BASIC);
     volatile uint32_t * enable = IRQ_reg(reg);
     *enable = 1U << (irq % 32);
+
+    PERIPHERAL_LEAVE(lock);
 }
 
-void disable_irq(enum IRQ irq) {
+void disable_irq(PeripheralLock *prev, enum IRQ irq) {
+    PERIPHERAL_ENTER(lock, prev, IRQ_BASE);
+
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_DISABLE1
 	           : ((irq < 64) ? IRQ_DISABLE2 : IRQ_DISABLE_BASIC);
     volatile uint32_t * disable = IRQ_reg(reg);
     *disable = 1U << (irq % 32);
+
+    PERIPHERAL_LEAVE(lock);
 }
+
 __END_NAMESPACE(IRQ);
 __END_NAMESPACE(Kernel);

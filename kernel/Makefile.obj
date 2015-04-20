@@ -3,11 +3,14 @@ FLAGS _tmp-y.o += -D__KERNEL__
 
 SRC y start.S
 SRC y entry.S
+SRC y assert.c
+SRC y gpio.cc
+SRC y led.cc
 SRC y exceptions.cc
 SRC y irq.cc
 DIR y memory
 SRC y arch_info.cc
 SRC y uart.cc
 SRC y /kprintf.c
-SRC y timer.c
+SRC y timer.cc
 SRC y main.cc

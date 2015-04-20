@@ -19,10 +19,11 @@
  */
 
 #ifndef KERNEL_IRQ_H
-#define KERNEL_IRQ_H 1
+#define KERNEL_IRQ_H
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include "peripherals.h"
 
 typedef struct Regs Regs;
 
@@ -30,11 +31,12 @@ __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(IRQ);
 
 __BEGIN_DECLS;
+void handler_irq(Regs *regs, uint32_t num);
+void handler_fiq(Regs *regs, uint32_t num);
+__END_DECLS;
 
-EXPORT void handler_irq(Regs *regs, uint32_t num);
-EXPORT void handler_fiq(Regs *regs, uint32_t num);
-EXPORT void enable_irqs(void);
-EXPORT void disable_irqs(void);
+void enable_irqs(void);
+void disable_irqs(void);
 
 enum IRQ {
     //IRQ_TIMER0               =  0, // GPU used
@@ -65,10 +67,9 @@ enum IRQ {
     IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
 };
 
-EXPORT void enable_irq(enum IRQ irq);
-EXPORT void disable_irq(enum IRQ irq);
+void enable_irq(PeripheralLock *prev, enum IRQ irq);
+void disable_irq(PeripheralLock *prev, enum IRQ irq);
 
-__END_DECLS;
 __END_NAMESPACE(IRQ);
 __END_NAMESPACE(Kernel);
 

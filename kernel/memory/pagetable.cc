@@ -20,7 +20,7 @@
 
 #include "pagetable.h"
 #include <stdint.h>
-#include "../fixed_addresses.h"
+#include "fixed_addresses.h"
 #include "TableEntry.h"
 #include "LeafEntry.h"
 #include "PhysAddr.h"

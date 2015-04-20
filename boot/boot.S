@@ -28,7 +28,7 @@
  * the system ID in r1 and the atags in r2.
  */
 
-#include "../kernel/fixed_addresses.h"
+#include "fixed_addresses.h"
 
 .section ".text"
 .global _start

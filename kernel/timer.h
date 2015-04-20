@@ -23,11 +23,21 @@
 
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include "peripherals.h"
 
-__BEGIN_DECLS
-EXPORT void timer_test(void);
-EXPORT uint64_t count(void);
-void handle_timer1(void);
-__END_DECLS
+__BEGIN_NAMESPACE(Kernel);
+__BEGIN_NAMESPACE(Timer);
+
+void test(void);
+uint64_t count(void);
+void handle_timer1(PeripheralLock *prev);
+
+/* busily wait at least usec micro seconds
+ * busy_wait(0) will wait till the next timer tick
+ */
+void busy_wait(uint32_t usec);
+
+__END_NAMESPACE(Timer);
+__END_NAMESPACE(Kernel);
 
 #endif // ##ifndef KERNEL_TIMER_H

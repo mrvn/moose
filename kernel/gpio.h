@@ -15,26 +15,33 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/*
- * init priorities
+/* GPIO related functions
  */
 
-#ifndef KERNEL_INIT_PRIORITIES_H
-#define KERNEL_INIT_PRIORITIES_H 1
+#ifndef KERNEL_GPIO_H
+#define KERNEL_GPIO_H
 
-enum INIT_PRIORITIES {
-    INIT_ARCH_INFO  = 1000,
-    INIT_LED,
-    INIT_UART,
-    INIT_ARCH_INFO_POST,
-    INIT_EXCEPTIONS,
+#include <stdint.h>
+#include <sys/cdefs.h>
+#include <stdbool.h>
+#include "peripherals.h"
+
+__BEGIN_NAMESPACE(Kernel);
+__BEGIN_NAMESPACE(GPIO);
+
+enum FSel {
+    INPUT, OUTPUT, FN5, FN4, FN0, FN1, FN2, FN3,
+};
+    
+enum PullUpDown {
+    OFF, UP, DOWN,
 };
 
-#define CONSTRUCTOR(name)						\
-    void __attribute__((constructor(__CONCAT(INIT_,name))))		\
-    __CONCAT(name,_init)(void) {					\
-    do
+void configure(PeripheralLock *prev, uint32_t pin, enum FSel fn,
+		    enum PullUpDown action);
+void set(PeripheralLock *prev, uint32_t pin, bool state);
 
-#define CONSTRUCTOR_END while(0); }
+__END_NAMESPACE(GPIO);
+__END_NAMESPACE(Kernel);
 
-#endif // ##ifndef KERNEL_INIT_PRIORITIES_H
+#endif // ##ifndef KERNEL_GPIO_H

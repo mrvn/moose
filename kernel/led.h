@@ -15,26 +15,31 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/*
- * init priorities
+/* LED related functions
  */
 
-#ifndef KERNEL_INIT_PRIORITIES_H
-#define KERNEL_INIT_PRIORITIES_H 1
+#ifndef KERNEL_LED_H
+#define KERNEL_LED_H
 
-enum INIT_PRIORITIES {
-    INIT_ARCH_INFO  = 1000,
-    INIT_LED,
-    INIT_UART,
-    INIT_ARCH_INFO_POST,
-    INIT_EXCEPTIONS,
+#include <stdint.h>
+#include <sys/cdefs.h>
+#include <stdbool.h>
+#include "peripherals.h"
+
+__BEGIN_NAMESPACE(Kernel);
+__BEGIN_NAMESPACE(LED);
+
+enum LED {
+    LED_ACT,
+    LED_PWR,
 };
 
-#define CONSTRUCTOR(name)						\
-    void __attribute__((constructor(__CONCAT(INIT_,name))))		\
-    __CONCAT(name,_init)(void) {					\
-    do
+__BEGIN_DECLS;
+void set(PeripheralLock *prev, enum LED led, bool state);
+void toggle(PeripheralLock *prev, enum LED led);
+__END_DECLS;
 
-#define CONSTRUCTOR_END while(0); }
+__END_NAMESPACE(LED);
+__END_NAMESPACE(Kernel);
 
-#endif // ##ifndef KERNEL_INIT_PRIORITIES_H
+#endif // ##ifndef KERNEL_LED_H
