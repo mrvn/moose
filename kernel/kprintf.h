@@ -24,7 +24,6 @@
 #include <stdarg.h>
 #include <sys/cdefs.h>
 
-__BEGIN_DECLS
 void kprintf(const char *format, ...) __PRINTFLIKE(1, 2);
 
 int snprintf(char *buf, size_t size, const char *format, ...) __PRINTFLIKE(3, 4);
@@ -38,6 +37,5 @@ void cprintf(vcprintf_callback_t callback, void *state, const char* format,
 
 void vcprintf(vcprintf_callback_t callback, void *state, const char* format,
 	      va_list args);
-__END_DECLS
 
 #endif // #ifndef PRINTF_H

@@ -26,18 +26,18 @@
 #include "peripherals.h"
 
 __BEGIN_NAMESPACE(Kernel);
-
-__BEGIN_DECLS;
-void putc(char c);
-char getc(void);
-void puts(const char *str);
-__END_DECLS;
-
 __BEGIN_NAMESPACE(UART);
 
-void uart_putc(const PeripheralLock *prev, char c);
-char uart_getc(const PeripheralLock *prev);
-void uart_puts(const PeripheralLock *prev, const char *str);
+void putc(char c,
+	  Peripheral::Barrier<Peripheral::UART0_BASE> barrier
+	  = Peripheral::Barrier<Peripheral::NONE>());
+
+char getc(Peripheral::Barrier<Peripheral::UART0_BASE> barrier
+	  = Peripheral::Barrier<Peripheral::NONE>());
+
+void puts(const char *str,
+	  Peripheral::Barrier<Peripheral::UART0_BASE> barrier
+	  = Peripheral::Barrier<Peripheral::NONE>());
 
 __END_NAMESPACE(UART)
 __END_NAMESPACE(Kernel)

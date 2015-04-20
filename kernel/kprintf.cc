@@ -21,15 +21,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "uart.h"
+#include "peripherals.h"
 
 static _Bool isdigit(unsigned char c) {
     return ((unsigned char)(c - '0') < 10);
 }
 
+void putc(char c, Peripheral::Barrier<Peripheral::UART0_BASE> *barrier) {
+    Kernel::UART::putc(c, *barrier);
+}
+
 void kprintf(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    vcprintf((vcprintf_callback_t)putc, NULL, format, args);
+    Peripheral::Barrier<Peripheral::UART0_BASE> barrier =
+	Peripheral::Barrier<Peripheral::NONE>();
+    vcprintf((vcprintf_callback_t)putc, &barrier, format, args);
     va_end(args);
 }
 

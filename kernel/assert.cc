@@ -33,18 +33,19 @@
 extern void __assert_fail (const char *__assertion, const char *__file,
                            unsigned int __line, const char *__function) {
     // enter peripheral for LED
-    PERIPHERAL_ENTER(lock, NULL, GPIO_BASE);
+    PERIPHERAL(GPIO_BASE);
+
+    using namespace Kernel;
+    using namespace Timer;
+    using namespace LED;
 
     kprintf("Assertion failed: %s: %d: %s: assert(%s)\n",
 	    __file, __line, __function, __assertion);
     uint64_t next = 0;
     while (true) {
 	while (count() < next) { }
-	toggle(&lock, LED_ACT);
-	if (next % 200000 == 0) toggle(&lock, LED_PWR);
+	toggle(LED_ACT, barrier);
+	if (next % 200000 == 0) toggle(LED_PWR, barrier);
 	next += 50000;
     }
-
-    // leave peripheral for LED
-    PERIPHERAL_LEAVE(lock);
 }

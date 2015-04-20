@@ -38,126 +38,93 @@ enum TIMER_Reg {
     TIMER_C3  = 0x18, // 0x??003018 System Timer Compare 3
 };
 
-static volatile uint32_t * TIMER_reg(enum TIMER_Reg reg) {
+static volatile uint32_t *
+TIMER_reg(enum TIMER_Reg reg,
+	  Peripheral::Barrier<Peripheral::TIMER_BASE>
+	  = Peripheral::Barrier<Peripheral::NONE>()) {
     return (volatile uint32_t *)(KERNEL_TIMER + reg);
 }
 
-static uint32_t status(PeripheralLock *prev) {
-    uint32_t res;
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
-    volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
-    res = *ctrl & 0x7;
-    
-    PERIPHERAL_LEAVE(lock);
-    return res;
+static uint32_t status(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    volatile uint32_t *ctrl = TIMER_reg(TIMER_CS, barrier);
+    return *ctrl & 0x7;
 }
 
-static void ctrl_set(PeripheralLock *prev, uint32_t t) {
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
-    volatile uint32_t *ctrl = TIMER_reg(TIMER_CS);
+static void ctrl_set(uint32_t t,
+		     Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    volatile uint32_t *ctrl = TIMER_reg(TIMER_CS, barrier);
     *ctrl |= t;
-
-    PERIPHERAL_LEAVE(lock);
 }
 
-uint64_t count(PeripheralLock *prev) {
-    uint64_t res;
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
-    volatile uint32_t *hi = TIMER_reg(TIMER_CHI);
-    volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
-    res = (((uint64_t)*hi) << 32) | *lo;
-
-    PERIPHERAL_LEAVE(lock);
-    return res;
+uint64_t count(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    volatile uint32_t *hi = TIMER_reg(TIMER_CHI, barrier);
+    volatile uint32_t *lo = TIMER_reg(TIMER_CLO, barrier);
+    return (((uint64_t)*hi) << 32) | *lo;
 }
 
-static uint32_t lowcount(PeripheralLock *prev) {
-    uint32_t res;
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
-    volatile uint32_t *lo = TIMER_reg(TIMER_CLO);
-    res = *lo;
-    
-    PERIPHERAL_LEAVE(lock);
-    return res;
+static uint32_t lowcount(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    volatile uint32_t *lo = TIMER_reg(TIMER_CLO, barrier);
+    return *lo;
 }
 
-static uint32_t cmp(PeripheralLock *prev, uint32_t num) {
-    uint32_t res;
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
+static uint32_t cmp(uint32_t num,
+		    Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);
-    res = *TIMER_reg(reg);
-
-    PERIPHERAL_LEAVE(lock);
-    return res;
+    return *TIMER_reg(reg, barrier);
 }
 
-static void set_cmp(PeripheralLock *prev, uint32_t num, uint32_t t) {
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
+static void set_cmp(uint32_t num, uint32_t t,
+		    Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
     enum TIMER_Reg reg =
 	(num < 2) ? ((num < 1) ? TIMER_C0 : TIMER_C1)
 	          : ((num < 3) ? TIMER_C2 : TIMER_C3);
-    volatile uint32_t *cmp = TIMER_reg(reg);
+    volatile uint32_t *cmp = TIMER_reg(reg, barrier);
     *cmp = t;
-
-    PERIPHERAL_LEAVE(lock);
 }
 
-void busy_wait(uint32_t usec) {
-    PERIPHERAL_ENTER(lock, NULL, TIMER_BASE);
-    uint32_t start = lowcount(&lock);
+void busy_wait(uint32_t usec,
+	       Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    uint32_t start = lowcount(barrier);
     uint32_t now = start;
     while (now - start <= usec) {
-	now = lowcount(&lock);
+	now = lowcount(barrier);
     }
-    PERIPHERAL_LEAVE(lock);
 }
 
-void test(void) {
-    PERIPHERAL_ENTER(lock, NULL, TIMER_BASE);
-
-    uint64_t t = count(&lock);
-    kprintf("timer CS    = %#lx\n", status(&lock));
+void test(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    uint64_t t = count(barrier);
+    kprintf("timer CS    = %#lx\n", status(barrier));
     kprintf("timer count = %#18llx\n", t);
-    kprintf("timer cmp 0 = %#10lx\n", cmp(&lock, 0));
-    kprintf("timer cmp 1 = %#10lx\n", cmp(&lock, 1));
-    kprintf("timer cmp 2 = %#10lx\n", cmp(&lock, 2));
-    kprintf("timer cmp 3 = %#10lx\n", cmp(&lock, 3));
+    kprintf("timer cmp 0 = %#10lx\n", cmp(0, barrier));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(1, barrier));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(2, barrier));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(3, barrier));
     kprintf("\n");
     
     // trigger on the second next second (at least one second from now)
-    set_cmp(&lock, 1, t / 1000000 * 1000000 + 2000000);
+    set_cmp(1, t / 1000000 * 1000000 + 2000000, barrier);
     
     // clear pending bit and enable irq
-    ctrl_set(&lock, 1U << 1);
-    IRQ::enable_irq(&lock, IRQ::IRQ_TIMER1);
+    ctrl_set(1U << 1, barrier);
+    IRQ::enable_irq(IRQ::IRQ_TIMER1, barrier);
     IRQ::enable_irqs();
 
     while (1) {
 	// chill out
 	asm volatile ("wfi");
     }
-
-    PERIPHERAL_LEAVE(lock);
 }
 
-void handle_timer1(PeripheralLock *prev) {
-    PERIPHERAL_ENTER(lock, prev, TIMER_BASE);
-
-    uint64_t t = count(&lock);
-    kprintf("timer CS    = %lu\n", status(&lock));
+void handle_timer1(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier) {
+    uint64_t t = count(barrier);
+    kprintf("timer CS    = %lu\n", status(barrier));
     kprintf("timer count = %#18llx\n", t);
-    kprintf("timer cmp 0 = %#10lx\n", cmp(&lock, 0));
-    kprintf("timer cmp 1 = %#10lx\n", cmp(&lock, 1));
-    kprintf("timer cmp 2 = %#10lx\n", cmp(&lock, 2));
-    kprintf("timer cmp 3 = %#10lx\n", cmp(&lock, 3));
+    kprintf("timer cmp 0 = %#10lx\n", cmp(0, barrier));
+    kprintf("timer cmp 1 = %#10lx\n", cmp(1, barrier));
+    kprintf("timer cmp 2 = %#10lx\n", cmp(2, barrier));
+    kprintf("timer cmp 3 = %#10lx\n", cmp(3, barrier));
 
     uint32_t frac, seconds, minutes, hours, next;
     frac = t % 1000000;
@@ -172,27 +139,25 @@ void handle_timer1(PeripheralLock *prev) {
     kprintf("\n");
     
     // clear pending bit
-    ctrl_set(&lock, 1U << 1);
+    ctrl_set(1U << 1, barrier);
     // trigger one the next second mark
-    set_cmp(&lock, 1, next);
+    set_cmp(1, next, barrier);
 
     // toggle leds
     switch(seconds % 4) {
     case 0:
-	LED::set(&lock, LED::LED_ACT, true);
+	LED::set(LED::LED_ACT, true, barrier);
 	break;
     case 1:
-	LED::set(&lock, LED::LED_PWR, true);
+	LED::set(LED::LED_PWR, true, barrier);
 	break;
     case 2:
-	LED::set(&lock, LED::LED_ACT, false);
+	LED::set(LED::LED_ACT, false, barrier);
 	break;
     case 3:
-	LED::set(&lock, LED::LED_PWR, false);
+	LED::set(LED::LED_PWR, false, barrier);
 	break;
     }
-
-    PERIPHERAL_LEAVE(lock);
 }
 
 __END_NAMESPACE(Timer);

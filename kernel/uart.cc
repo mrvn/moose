@@ -50,7 +50,10 @@ enum UART0_Reg {
     // UART0_TDR    = 0x8C, // 0x??20108C Test Data reg
 };
 
-static volatile uint32_t * UART0_reg(enum UART0_Reg reg) {
+static volatile uint32_t *
+UART0_reg(enum UART0_Reg reg,
+	  Peripheral::Barrier<Peripheral::UART0_BASE>
+	  = Peripheral::Barrier<Peripheral::NONE>()) {
     return (volatile uint32_t *)(KERNEL_UART + reg);
 }
 
@@ -126,16 +129,16 @@ enum {
 };
 
 CONSTRUCTOR(UART) {
-    PERIPHERAL_ENTER(lock, NULL, UART0_BASE);
+    PERIPHERAL(UART0_BASE);
 
-    volatile uint32_t *cr = UART0_reg(UART0_CR);
-    volatile uint32_t *fr = UART0_reg(UART0_FR);
-    volatile uint32_t *lcrh = UART0_reg(UART0_LCRH);
-    volatile uint32_t *icr = UART0_reg(UART0_ICR);
-    volatile uint32_t *ibrd = UART0_reg(UART0_IBRD);
-    volatile uint32_t *fbrd = UART0_reg(UART0_FBRD);
-    volatile uint32_t *imsc = UART0_reg(UART0_IMSC);
-    volatile uint32_t *ifls = UART0_reg(UART0_IFLS);
+    volatile uint32_t *cr = UART0_reg(UART0_CR, barrier);
+    volatile uint32_t *fr = UART0_reg(UART0_FR, barrier);
+    volatile uint32_t *lcrh = UART0_reg(UART0_LCRH, barrier);
+    volatile uint32_t *icr = UART0_reg(UART0_ICR, barrier);
+    volatile uint32_t *ibrd = UART0_reg(UART0_IBRD, barrier);
+    volatile uint32_t *fbrd = UART0_reg(UART0_FBRD, barrier);
+    volatile uint32_t *imsc = UART0_reg(UART0_IMSC, barrier);
+    volatile uint32_t *ifls = UART0_reg(UART0_IFLS, barrier);
 
     // wait for end of transmission
     while(*fr & FR_BUSY) { }
@@ -147,8 +150,8 @@ CONSTRUCTOR(UART) {
     *lcrh &= ~LCRH_FEN;
 	
     // select function 0 and disable pull up/down for pins 14, 15
-    GPIO::configure(&lock, 14, GPIO::FN0, GPIO::OFF);
-    GPIO::configure(&lock, 15, GPIO::FN0, GPIO::OFF);
+    GPIO::configure(14, GPIO::FN0, GPIO::OFF, barrier);
+    GPIO::configure(15, GPIO::FN0, GPIO::OFF, barrier);
 
     // Set integer & fractional part of baud rate.
     // Divider = UART_CLOCK/(16 * Baud)
@@ -174,57 +177,29 @@ CONSTRUCTOR(UART) {
 
     // Enable UART0, receive & transfer part of UART.
     *cr = CR_UARTEN | CR_TXW | CR_RXE;
-
-    PERIPHERAL_LEAVE(lock);
 } CONSTRUCTOR_END
 
-void uart_putc(const PeripheralLock *prev, char c) {
-    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
-
+void putc(char c, Peripheral::Barrier<Peripheral::UART0_BASE> barrier) {
     // wait for space in the transmit FIFO
-    while(*UART0_reg(UART0_FR) & FR_TXFF) { }
+    while(*UART0_reg(UART0_FR, barrier) & FR_TXFF) { }
 
     // add char to transmit FIFO
-    *UART0_reg(UART0_DR) = c;
-
-    PERIPHERAL_LEAVE(lock);
+    *UART0_reg(UART0_DR, barrier) = c;
 }
 
-char uart_getc(const PeripheralLock *prev) {
-    char c;
-    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
-
+char getc(Peripheral::Barrier<Peripheral::UART0_BASE> barrier) {
     // wait for data in the receive FIFO
-    while(*UART0_reg(UART0_FR) & FR_RXFE) { }
+    while(*UART0_reg(UART0_FR, barrier) & FR_RXFE) { }
 
     // extract char from receive FIFO
-    c = *UART0_reg(UART0_DR);
-
-    PERIPHERAL_LEAVE(lock);
-    return c;
+    return *UART0_reg(UART0_DR, barrier);
 }
 
-void uart_puts(const PeripheralLock *prev, const char *str) {
-    PERIPHERAL_ENTER(lock, prev, UART0_BASE);
-
+void puts(const char *str,
+	  Peripheral::Barrier<Peripheral::UART0_BASE> barrier) {
     // putc until 0 byte
-    while (*str) putc(*str++);
-
-    PERIPHERAL_LEAVE(lock);
+    while (*str) putc(*str++, barrier);
 }
 
 __END_NAMESPACE(UART)
-
-void putc(char c) {
-    UART::uart_putc(NULL, c);
-}
-
-char getc(void) {
-    return UART::uart_getc(NULL);
-}
-
-void puts(const char *str) {
-    UART::uart_puts(NULL, str);
-}
-
 __END_NAMESPACE(Kernel)

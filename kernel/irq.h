@@ -67,8 +67,13 @@ enum IRQ {
     IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
 };
 
-void enable_irq(PeripheralLock *prev, enum IRQ irq);
-void disable_irq(PeripheralLock *prev, enum IRQ irq);
+void enable_irq(enum IRQ irq,
+		Peripheral::Barrier<Peripheral::IRQ_BASE> barrier
+		= Peripheral::Barrier<Peripheral::NONE>());
+
+void disable_irq(enum IRQ irq,
+		 Peripheral::Barrier<Peripheral::IRQ_BASE> barrier
+		 = Peripheral::Barrier<Peripheral::NONE>());
 
 __END_NAMESPACE(IRQ);
 __END_NAMESPACE(Kernel);

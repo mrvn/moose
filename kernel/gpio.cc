@@ -48,28 +48,30 @@ enum GPIO_Reg {
     GPIO_PUDCLK1 = 0x9C, // 0x??20009C
 };
 
-static volatile uint32_t * GPIO_reg(enum GPIO_Reg reg) {
+static volatile uint32_t *
+GPIO_reg(enum GPIO_Reg reg,
+	 Peripheral::Barrier<Peripheral::GPIO_BASE>
+	 = Peripheral::Barrier<Peripheral::NONE>()) {
     return (volatile uint32_t *)(KERNEL_GPIO + reg);
 }
 
-void configure(PeripheralLock *prev, uint32_t pin, enum FSel fn, enum PullUpDown action) {
-    PERIPHERAL_ENTER(lock, prev, GPIO_BASE);
-
+void configure(uint32_t pin, enum FSel fn, enum PullUpDown action,
+	       Peripheral::Barrier<Peripheral::GPIO_BASE> barrier) {
     // set pull up down
     // ----------------
 
     // wait for the timer tick
-    Timer::busy_wait(0);
+    Timer::busy_wait(0, barrier);
     
     // set action & delay for 150 cycles (1us > 150 cycles)
-    volatile uint32_t *pud = GPIO_reg(GPIO_PUD);
+    volatile uint32_t *pud = GPIO_reg(GPIO_PUD, barrier);
     *pud = action;
-    Timer::busy_wait(0);
+    Timer::busy_wait(0, barrier);
 
     // trigger action & delay for 150 cycles (1us > 150 cycles)
-    volatile uint32_t *clock = &GPIO_reg(GPIO_PUDCLK0)[pin / 32];
+    volatile uint32_t *clock = &GPIO_reg(GPIO_PUDCLK0, barrier)[pin / 32];
     *clock = (1 << (pin % 32));
-    Timer::busy_wait(0);
+    Timer::busy_wait(0, barrier);
     
     // clear action
     *pud = OFF;
@@ -79,21 +81,17 @@ void configure(PeripheralLock *prev, uint32_t pin, enum FSel fn, enum PullUpDown
 
     // set function
     // ------------
-    volatile uint32_t *fsel = &GPIO_reg(GPIO_FSEL0)[pin / 10];
+    volatile uint32_t *fsel = &GPIO_reg(GPIO_FSEL0, barrier)[pin / 10];
     uint32_t shift = (pin % 10) * 3;
     uint32_t mask = ~(7U << shift);
     *fsel = (*fsel & mask) | (fn << shift);
-
-    PERIPHERAL_LEAVE(lock);
 }
 
-void set(PeripheralLock *prev, uint32_t pin, bool state) {
-    PERIPHERAL_ENTER(lock, prev, GPIO_BASE);
-
+void set(uint32_t pin, bool state,
+	 Peripheral::Barrier<Peripheral::GPIO_BASE> barrier) {
     // set or clear output of pin
-    GPIO_reg(state ? GPIO_SET0 : GPIO_CLR0)[pin / 32] = 1U << (pin % 32);
-
-    PERIPHERAL_LEAVE(lock);
+    GPIO_reg(state ? GPIO_SET0 : GPIO_CLR0, barrier)[pin / 32]
+	= 1U << (pin % 32);
 }
 
 __END_NAMESPACE(GPIO);

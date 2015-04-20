@@ -28,14 +28,21 @@
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(Timer);
 
-void test(void);
-uint64_t count(void);
-void handle_timer1(PeripheralLock *prev);
+void test(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
+	  = Peripheral::Barrier<Peripheral::NONE>());
+
+uint64_t count(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
+	       = Peripheral::Barrier<Peripheral::NONE>());
+
+void handle_timer1(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
+		   = Peripheral::Barrier<Peripheral::NONE>());
 
 /* busily wait at least usec micro seconds
  * busy_wait(0) will wait till the next timer tick
  */
-void busy_wait(uint32_t usec);
+void busy_wait(uint32_t usec,
+	       Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
+	       = Peripheral::Barrier<Peripheral::NONE>());
 
 __END_NAMESPACE(Timer);
 __END_NAMESPACE(Kernel);

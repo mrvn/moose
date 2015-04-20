@@ -37,9 +37,13 @@ enum PullUpDown {
     OFF, UP, DOWN,
 };
 
-void configure(PeripheralLock *prev, uint32_t pin, enum FSel fn,
-		    enum PullUpDown action);
-void set(PeripheralLock *prev, uint32_t pin, bool state);
+void configure(uint32_t pin, enum FSel fn, enum PullUpDown action,
+	       Peripheral::Barrier<Peripheral::GPIO_BASE> barrier
+	       = Peripheral::Barrier<Peripheral::NONE>());
+
+void set(uint32_t pin, bool state,
+	       Peripheral::Barrier<Peripheral::GPIO_BASE> barrier
+	       = Peripheral::Barrier<Peripheral::NONE>());
 
 __END_NAMESPACE(GPIO);
 __END_NAMESPACE(Kernel);
