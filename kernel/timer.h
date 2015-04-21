@@ -28,21 +28,44 @@
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(Timer);
 
-void test(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
-	  = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base base = Peripheral::NONE>
+void test(void) {
+    PERIPHERAL(TIMER_BASE);
+    test<BASE>();
+}
 
-uint64_t count(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
-	       = Peripheral::Barrier<Peripheral::NONE>());
+template<>
+void test<Peripheral::TIMER_BASE>(void);
 
-void handle_timer1(Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
-		   = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base base = Peripheral::NONE>
+uint64_t count() {
+    PERIPHERAL(TIMER_BASE);
+    return count<BASE>();
+}
+
+template<>
+uint64_t count<Peripheral::TIMER_BASE>();
+
+template<Peripheral::Base base = Peripheral::NONE>
+void handle_timer1() {
+    PERIPHERAL(TIMER_BASE);
+    handle_timer1<BASE>();
+}
+
+template<>
+void handle_timer1<Peripheral::TIMER_BASE>();
 
 /* busily wait at least usec micro seconds
  * busy_wait(0) will wait till the next timer tick
  */
-void busy_wait(uint32_t usec,
-	       Peripheral::Barrier<Peripheral::TIMER_BASE> barrier
-	       = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base base = Peripheral::NONE>
+void busy_wait(uint32_t usec) {
+    PERIPHERAL(TIMER_BASE);
+    busy_wait<BASE>(usec);
+}
+
+template<>
+void busy_wait<Peripheral::TIMER_BASE>(uint32_t usec);
 
 __END_NAMESPACE(Timer);
 __END_NAMESPACE(Kernel);

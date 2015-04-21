@@ -54,38 +54,29 @@ enum Base {
 template<Base base>
 class Barrier {
 public:
+    static constexpr const Base BASE = base;
+
+    Barrier() {
+	dmb();
+    }
+
     ~Barrier() {
 	dmb();
     }
 
-    template<Base next>
-    operator Barrier<next>() const {
-	dmb();
-	return Barrier<next>();
-    }
-    template<Base>
-    friend class Barrier;
-private:
-    Barrier() { }
+    Barrier(const Barrier &) = delete; // copy constructor
+    Barrier(Barrier &&) = delete; // move constructor
+    Barrier & operator =(const Barrier &) = delete; // copy assignment
+    Barrier & operator =(Barrier &&) = delete; // move assignment
 };
 
-template<>
-class Barrier<NONE> {
-public:
-    Barrier() { }
+#define BASE(B)							\
+    static constexpr const Peripheral::Base BASE = Peripheral::B
 
-    ~Barrier() { }
+#define PERIPHERAL(B)							\
+    Peripheral::Barrier<Peripheral::B> barrier;				\
+    BASE(B)
 
-    template<Base next>
-    operator Barrier<next>() const {
-	dmb();
-	return Barrier<next>();
-    }
-};
-
-#define PERIPHERAL(BASE)				\
-    Peripheral::Barrier<Peripheral::BASE> barrier 	\
-        = Peripheral::Barrier<Peripheral::NONE>()
 
 __END_NAMESPACE(Peripheral);
 

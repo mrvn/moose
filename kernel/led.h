@@ -34,13 +34,23 @@ enum LED {
     LED_PWR,
 };
 
-void set(enum LED led, bool state,
-	 Peripheral::Barrier<Peripheral::GPIO_BASE> barrier
-	 = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base base = Peripheral::NONE>
+void set(enum LED led, bool state) {
+    PERIPHERAL(GPIO_BASE);
+    set<BASE>(led, state);
+}
 
-void toggle(enum LED led,
-	    Peripheral::Barrier<Peripheral::GPIO_BASE> barrier
-	    = Peripheral::Barrier<Peripheral::NONE>());
+template<>
+void set<Peripheral::GPIO_BASE>(enum LED led, bool state);
+
+template<Peripheral::Base base = Peripheral::NONE>
+void toggle(enum LED led) {
+    PERIPHERAL(GPIO_BASE);
+    toggle<BASE>(led);
+}
+
+template<>
+void toggle<Peripheral::GPIO_BASE>(enum LED led);
 
 __END_NAMESPACE(LED);
 __END_NAMESPACE(Kernel);

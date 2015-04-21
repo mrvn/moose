@@ -32,9 +32,6 @@
 // This prints an "Assertion failed" message and blinks the LEDs madly
 extern void __assert_fail (const char *__assertion, const char *__file,
                            unsigned int __line, const char *__function) {
-    // enter peripheral for LED
-    PERIPHERAL(GPIO_BASE);
-
     using namespace Kernel;
     using namespace Timer;
     using namespace LED;
@@ -42,10 +39,12 @@ extern void __assert_fail (const char *__assertion, const char *__file,
     kprintf("Assertion failed: %s: %d: %s: assert(%s)\n",
 	    __file, __line, __function, __assertion);
     uint64_t next = 0;
+    // enter peripheral for LED
+    PERIPHERAL(GPIO_BASE);
     while (true) {
-	while (count() < next) { }
-	toggle(LED_ACT, barrier);
-	if (next % 200000 == 0) toggle(LED_PWR, barrier);
+	while (count<BASE>() < next) { }
+	toggle<BASE>(LED_ACT);
+	if (next % 200000 == 0) toggle<BASE>(LED_PWR);
 	next += 50000;
     }
 }

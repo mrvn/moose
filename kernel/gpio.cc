@@ -48,30 +48,34 @@ enum GPIO_Reg {
     GPIO_PUDCLK1 = 0x9C, // 0x??20009C
 };
 
-static volatile uint32_t *
-GPIO_reg(enum GPIO_Reg reg,
-	 Peripheral::Barrier<Peripheral::GPIO_BASE>
-	 = Peripheral::Barrier<Peripheral::NONE>()) {
+template<Peripheral::Base base>
+volatile uint32_t * GPIO_reg(enum GPIO_Reg reg) = delete;
+
+template<>
+volatile uint32_t * GPIO_reg<Peripheral::GPIO_BASE>(enum GPIO_Reg reg) {
     return (volatile uint32_t *)(KERNEL_GPIO + reg);
 }
 
-void configure(uint32_t pin, enum FSel fn, enum PullUpDown action,
-	       Peripheral::Barrier<Peripheral::GPIO_BASE> barrier) {
+template<>
+void configure<Peripheral::GPIO_BASE>(uint32_t pin, enum FSel fn,
+				      enum PullUpDown action) {
+    BASE(GPIO_BASE);
     // set pull up down
     // ----------------
 
     // wait for the timer tick
-    Timer::busy_wait(0, barrier);
+    Timer::busy_wait<BASE>(0);
     
     // set action & delay for 150 cycles (1us > 150 cycles)
-    volatile uint32_t *pud = GPIO_reg(GPIO_PUD, barrier);
+    volatile uint32_t *pud = GPIO_reg<BASE>(GPIO_PUD);
     *pud = action;
-    Timer::busy_wait(0, barrier);
+    Timer::busy_wait<BASE>(0);
 
     // trigger action & delay for 150 cycles (1us > 150 cycles)
-    volatile uint32_t *clock = &GPIO_reg(GPIO_PUDCLK0, barrier)[pin / 32];
+    volatile uint32_t *clock =
+	&GPIO_reg<BASE>(GPIO_PUDCLK0)[pin / 32];
     *clock = (1 << (pin % 32));
-    Timer::busy_wait(0, barrier);
+    Timer::busy_wait<BASE>(0);
     
     // clear action
     *pud = OFF;
@@ -81,16 +85,18 @@ void configure(uint32_t pin, enum FSel fn, enum PullUpDown action,
 
     // set function
     // ------------
-    volatile uint32_t *fsel = &GPIO_reg(GPIO_FSEL0, barrier)[pin / 10];
+    volatile uint32_t *fsel =
+	&GPIO_reg<BASE>(GPIO_FSEL0)[pin / 10];
     uint32_t shift = (pin % 10) * 3;
     uint32_t mask = ~(7U << shift);
     *fsel = (*fsel & mask) | (fn << shift);
 }
 
-void set(uint32_t pin, bool state,
-	 Peripheral::Barrier<Peripheral::GPIO_BASE> barrier) {
+template<>
+void set<Peripheral::GPIO_BASE>(uint32_t pin, bool state) {
+    BASE(GPIO_BASE);
     // set or clear output of pin
-    GPIO_reg(state ? GPIO_SET0 : GPIO_CLR0, barrier)[pin / 32]
+    GPIO_reg<BASE>(state ? GPIO_SET0 : GPIO_CLR0)[pin / 32]
 	= 1U << (pin % 32);
 }
 

@@ -41,10 +41,11 @@ enum IRQ_Reg {
     IRQ_DISABLE_BASIC = 0x224, // 0x??00B224
 };
 
-static volatile uint32_t *
-IRQ_reg(enum IRQ_Reg reg,
-	Peripheral::Barrier<Peripheral::IRQ_BASE>
-	= Peripheral::Barrier<Peripheral::NONE>()) {
+template<Peripheral::Base>
+volatile uint32_t * IRQ_reg(enum IRQ_Reg reg) = delete;
+
+template<>
+volatile uint32_t * IRQ_reg<Peripheral::IRQ_BASE>(enum IRQ_Reg reg) {
     return (volatile uint32_t *)(KERNEL_IRQ + reg);
 }
 
@@ -52,9 +53,9 @@ void handler_irq(Regs *regs, uint32_t num) {
     PERIPHERAL(IRQ_BASE);
 
     (void)num;
-    volatile uint32_t *pending1 = IRQ_reg(IRQ_PENDING1, barrier);
+    volatile uint32_t *pending1 = IRQ_reg<BASE>(IRQ_PENDING1);
     if ((*pending1 & (1U << 1)) != 0) {
-	Timer::handle_timer1(barrier);
+	Timer::handle_timer1<BASE>();
     } else {
 	kprintf("%s: Regs @ %p\n", "IRQ", regs);
 	dump_regs(regs);
@@ -94,21 +95,23 @@ void disable_irqs(void) {
     cpsr_write_c(cpsr);
 }
 
-void enable_irq(enum IRQ irq,
-		Peripheral::Barrier<Peripheral::IRQ_BASE> barrier) {
+template<>
+void enable_irq<Peripheral::IRQ_BASE>(enum IRQ irq) {
+    BASE(IRQ_BASE);
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_ENABLE1
 	           : ((irq < 64) ? IRQ_ENABLE2 : IRQ_ENABLE_BASIC);
-    volatile uint32_t * enable = IRQ_reg(reg, barrier);
+    volatile uint32_t * enable = IRQ_reg<BASE>(reg);
     *enable = 1U << (irq % 32);
 }
 
-void disable_irq(enum IRQ irq,
-		 Peripheral::Barrier<Peripheral::IRQ_BASE> barrier) {
+template<>
+void disable_irq<Peripheral::IRQ_BASE>(enum IRQ irq) {
+    BASE(IRQ_BASE);
     enum IRQ_Reg reg =
 	(irq < 32) ? IRQ_DISABLE1
 	           : ((irq < 64) ? IRQ_DISABLE2 : IRQ_DISABLE_BASIC);
-    volatile uint32_t * disable = IRQ_reg(reg, barrier);
+    volatile uint32_t * disable = IRQ_reg<BASE>(reg);
     *disable = 1U << (irq % 32);
 }
 

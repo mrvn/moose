@@ -67,13 +67,23 @@ enum IRQ {
     IRQ_ILLEGAL_ACCESS_TYPE0 = 71,
 };
 
-void enable_irq(enum IRQ irq,
-		Peripheral::Barrier<Peripheral::IRQ_BASE> barrier
-		= Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base = Peripheral::NONE>
+void enable_irq(enum IRQ irq) {
+    PERIPHERAL(IRQ_BASE);
+    enable_irq<BASE>(irq);
+}
 
-void disable_irq(enum IRQ irq,
-		 Peripheral::Barrier<Peripheral::IRQ_BASE> barrier
-		 = Peripheral::Barrier<Peripheral::NONE>());
+template<>
+void enable_irq<Peripheral::IRQ_BASE>(enum IRQ irq);
+
+template<Peripheral::Base = Peripheral::NONE>
+void disable_irq(enum IRQ irq) {
+    PERIPHERAL(IRQ_BASE);
+    disable_irq<BASE>(irq);
+}
+
+template<>
+void disable_irq<Peripheral::IRQ_BASE>(enum IRQ irq);
 
 __END_NAMESPACE(IRQ);
 __END_NAMESPACE(Kernel);

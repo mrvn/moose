@@ -28,16 +28,32 @@
 __BEGIN_NAMESPACE(Kernel);
 __BEGIN_NAMESPACE(UART);
 
-void putc(char c,
-	  Peripheral::Barrier<Peripheral::UART0_BASE> barrier
-	  = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base = Peripheral::NONE>
+void putc(const char c) {
+    PERIPHERAL(UART0_BASE);
+    putc<BASE>(c);
+}
 
-char getc(Peripheral::Barrier<Peripheral::UART0_BASE> barrier
-	  = Peripheral::Barrier<Peripheral::NONE>());
+template<>
+void putc<Peripheral::UART0_BASE>(const char c);
 
-void puts(const char *str,
-	  Peripheral::Barrier<Peripheral::UART0_BASE> barrier
-	  = Peripheral::Barrier<Peripheral::NONE>());
+template<Peripheral::Base = Peripheral::NONE>
+char getc() {
+    PERIPHERAL(UART0_BASE);
+    return getc<BASE>();
+}
+
+template<>
+char getc<Peripheral::UART0_BASE>();
+
+template<Peripheral::Base = Peripheral::NONE>
+void puts(const char *str) {
+    PERIPHERAL(UART0_BASE);
+    puts<BASE>(str);
+}
+
+template<>
+void puts<Peripheral::UART0_BASE>(const char *str);
 
 __END_NAMESPACE(UART)
 __END_NAMESPACE(Kernel)
