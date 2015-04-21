@@ -36,12 +36,12 @@ void ARCH_INFO_init(void);
 
 extern "C" {
  // constructors
-    typedef void (*constructor_t)(void);
-    extern constructor_t _init_array_start[];
-    extern constructor_t _init_array_end[];
+    typedef void constructor(void);
+    extern constructor * _init_array_start[];
+    extern constructor * _init_array_end[];
 
     EXPORT void kernel_constructors(void) {
-	for(constructor_t *fn = _init_array_start;
+	for(constructor **fn = _init_array_start;
 	    fn != _init_array_end; ++fn) {
 	    (*fn)();
 	}
