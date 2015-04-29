@@ -15,29 +15,18 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Doubly linked list class
- */
+// test list class
 
-#ifndef LIST_H
-#define LIST_H 1
+#include "list.h"
 
-template<class Container, class Identifier>
-class List {
+class All;
+class Same;
+
+class Foo : public List<Foo, All>, public List<Foo, Same> {
 public:
-    constexpr List(Container *self) : next_(self), prev_(self) { }
-
-    ~List() {
-	next_->List::prev_ = prev_;
-	prev_->List::next_ = next_;
-	next_ = nullptr;
-	prev_ = nullptr;
-    }
+    Foo() : List<Foo, All>(this), List<Foo, Same>(this) { }
+    ~Foo() { }
 private:
-    List(const List &&) = delete;
-    List && operator =(const List &&) = delete;
-
-    Container *next_;
-    Container *prev_;
+    Foo(const Foo &&) = delete;
+    Foo && operator =(const Foo &&) = delete;
 };
-
-#endif // ##ifndef LIST_H

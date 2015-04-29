@@ -14,3 +14,4 @@ SRC y uart.cc
 SRC y kprintf.cc
 SRC y timer.cc
 SRC y main.cc
+SRC y list-test.cc
