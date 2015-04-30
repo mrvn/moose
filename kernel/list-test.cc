@@ -22,10 +22,17 @@
 class All;
 class Same;
 
-class Foo : public List<Foo, All>, public List<Foo, Same> {
+class Foo : public Lists<Foo, All, Same> {
 public:
-    Foo() : List<Foo, All>(this), List<Foo, Same>(this) { }
+    Foo() : Lists<Foo, All, Same>(this) { }
     ~Foo() { }
+
+    void test() {
+	Foo &n = next<All>();
+	if (&n == this) { }
+	const Foo &c = next<All>();
+	if (&c == this) { }
+    }
 private:
     Foo(const Foo &&) = delete;
     Foo && operator =(const Foo &&) = delete;

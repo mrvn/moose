@@ -32,12 +32,48 @@ public:
 	next_ = nullptr;
 	prev_ = nullptr;
     }
+
+    const Container & next() const {
+	return *next_;
+    }
+
+    Container & next() {
+	return *next_;
+    }
 private:
     List(const List &&) = delete;
     List && operator =(const List &&) = delete;
 
     Container *next_;
     Container *prev_;
+};
+
+template<class Container, class ... Identifiers> class Lists;
+
+template<class Container, class Identifier, class ... Identifiers>
+class Lists<Container, Identifier, Identifiers ...>
+    : public List<Container, Identifier>,
+      public Lists<Container, Identifiers ...> {
+public:
+    Lists(Container *self) : List<Container, Identifier>(self),
+			     Lists<Container, Identifiers ...>(self) {
+    }
+
+    template<class Id>
+    const Container & next() const {
+	return List<Container, Id>::next();
+    }
+
+    template<class Id>
+    Container & next() {
+	return List<Container, Id>::next();
+    }
+};
+
+template<class Container>
+class Lists<Container> {
+public:
+    Lists(Container *) { }
 };
 
 #endif // ##ifndef LIST_H
