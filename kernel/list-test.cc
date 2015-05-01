@@ -32,6 +32,8 @@ public:
 	if (&n == this) { }
 	const Foo &c = next<All>();
 	if (&c == this) { }
+	const Foo &c2 = c.prev<All>();
+	if (&c2 == this) { }
     }
 private:
     Foo(const Foo &&) = delete;

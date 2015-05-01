@@ -40,6 +40,14 @@ public:
     Container & next() {
 	return *next_;
     }
+
+    const Container & prev() const {
+	return *prev_;
+    }
+
+    Container & prev() {
+	return *prev_;
+    }
 private:
     List(const List &&) = delete;
     List && operator =(const List &&) = delete;
@@ -67,6 +75,16 @@ public:
     template<class Id>
     Container & next() {
 	return List<Container, Id>::next();
+    }
+
+    template<class Id>
+    const Container & prev() const {
+	return List<Container, Id>::prev();
+    }
+
+    template<class Id>
+    Container & prev() {
+	return List<Container, Id>::prev();
     }
 };
 
